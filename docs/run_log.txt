@@ -1,0 +1,1204 @@
+YARVPILLED run log | ruby 3.4.7 | YJIT true | world=native | seed=11
+[t=   40] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 2/6 votes
+[t=   80] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=   92] REWRITE   TracePoint(:call) rewrote #8#think mid-call: 32w -> 13w, in-flight=0 next=39
+==============================================================================
+SELF-REWRITE at tick 90 (fired t=91): species #8 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 0
+next call (new bytecode) returned:      39   inputs=[37, 1, 37, 27, 2, 11]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  t0 = (fl - fl)
+  (fa > 30 ? 0 : (t0 > 13 ? 1 : 2))
+}
+--- BEFORE disasm (32 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(4,1)>
+local table (size: 7, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 7] fa@0<Arg>  [ 6] fl@1<Arg>  [ 5] fr@2<Arg>  [ 4] en@3<Arg>  [ 3] cr@4<Arg>  [ 2] ag@5<Arg>  [ 1] t0@6
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fl@1                      (   2)[Li]
+0003 getlocal_WC_0                          fl@1
+0005 opt_minus                              <calldata!mid:-, argc:1, ARGS_SIMPLE>[CcCr]
+0007 setlocal_WC_0                          t0@6
+0009 getlocal_WC_0                          fa@0                      (   3)[Li]
+0011 putobject                              30
+0013 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0015 branchunless                           19
+0017 putobject_INT2FIX_0_
+0018 leave                                                            (   4)[Br]
+0019 getlocal_WC_0                          t0@6                      (   3)
+0021 putobject                              13
+0023 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0025 branchunless                           29
+0027 putobject_INT2FIX_1_
+0028 leave                                                            (   4)[Br]
+0029 putobject                              2                         (   3)
+0031 leave                                                            (   4)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  ((39 ^ en) - [11, 21].max)
+}
+--- AFTER disasm (13 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 putobject                              39                        (   2)[LiBc]
+0002 getlocal_WC_0                          en@3
+0004 opt_send_without_block                 <calldata!mid:^, argc:1, ARGS_SIMPLE>
+0006 duparray                               [11, 21]
+0008 opt_send_without_block                 <calldata!mid:max, argc:0, ARGS_SIMPLE>
+0010 opt_minus                              <calldata!mid:-, argc:1, ARGS_SIMPLE>[CcCr]
+0012 leave                                                            (   3)[Br]
+==============================================================================
+[t=  120] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  150] COMPACT   ENLIGHTENMENT: GC.compact moved 4455/4486 objects in 7.7ms
+[t=  160] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  200] VOTE      Ractor hive-mind (6 isolates) blesses #8 with 2/6 votes
+[t=  240] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 2/6 votes
+[t=  242] REWRITE   TracePoint(:call) rewrote #8#think mid-call: 13w -> 31w, in-flight=149 next=2
+==============================================================================
+SELF-REWRITE at tick 240 (fired t=241): species #8 <- apex #3
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:2:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 149
+next call (new bytecode) returned:      2   inputs=[50, 50, 50, 142, 0, 29]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  ((39 ^ en) - [11, 21].max)
+}
+--- BEFORE disasm (13 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 putobject                              39                        (   2)[LiBc]
+0002 getlocal_WC_0                          en@3
+0004 opt_send_without_block                 <calldata!mid:^, argc:1, ARGS_SIMPLE>
+0006 duparray                               [11, 21]
+0008 opt_send_without_block                 <calldata!mid:max, argc:0, ARGS_SIMPLE>
+0010 opt_minus                              <calldata!mid:-, argc:1, ARGS_SIMPLE>[CcCr]
+0012 leave                                                            (   3)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  t0 = (fl - fr)
+  (fa == 30 ? 0 : (t0 > 0 ? 1 : 2))
+}
+--- AFTER disasm (31 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(4,1)>
+local table (size: 7, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 7] fa@0<Arg>  [ 6] fl@1<Arg>  [ 5] fr@2<Arg>  [ 4] en@3<Arg>  [ 3] cr@4<Arg>  [ 2] ag@5<Arg>  [ 1] t0@6
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fl@1                      (   2)[Li]
+0003 getlocal_WC_0                          fr@2
+0005 opt_minus                              <calldata!mid:-, argc:1, ARGS_SIMPLE>[CcCr]
+0007 setlocal_WC_0                          t0@6
+0009 getlocal_WC_0                          fa@0                      (   3)[Li]
+0011 putobject                              30
+0013 opt_eq                                 <calldata!mid:==, argc:1, ARGS_SIMPLE>[CcCr]
+0015 branchunless                           19
+0017 putobject_INT2FIX_0_
+0018 leave                                                            (   4)[Br]
+0019 getlocal_WC_0                          t0@6                      (   3)
+0021 putobject_INT2FIX_0_
+0022 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0024 branchunless                           28
+0026 putobject_INT2FIX_1_
+0027 leave                                                            (   4)[Br]
+0028 putobject                              2                         (   3)
+0030 leave                                                            (   4)[Br]
+==============================================================================
+[t=  280] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  306] PREPEND   species #2 collapsing -> singleton_class.prepend(Instinct): Yarvpilled::Instinct < #<Class:#<#<Class:0x00
+[t=  320] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  360] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  392] REWRITE   TracePoint(:call) rewrote #9#think mid-call: 51w -> 23w, in-flight=0 next=0
+==============================================================================
+SELF-REWRITE at tick 390 (fired t=391): species #9 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 0
+next call (new bytecode) returned:      0   inputs=[52, 114, 52, 112, 1, 48]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  t0 = (fl - fr)
+  (fa > 30 ? 0 : (t0 > 0 ? 1 : ((fr > 19 ? fr : fl) | (46 + 40))))
+}
+--- BEFORE disasm (51 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(4,1)>
+local table (size: 7, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 7] fa@0<Arg>  [ 6] fl@1<Arg>  [ 5] fr@2<Arg>  [ 4] en@3<Arg>  [ 3] cr@4<Arg>  [ 2] ag@5<Arg>  [ 1] t0@6
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fl@1                      (   2)[Li]
+0003 getlocal_WC_0                          fr@2
+0005 opt_minus                              <calldata!mid:-, argc:1, ARGS_SIMPLE>[CcCr]
+0007 setlocal_WC_0                          t0@6
+0009 getlocal_WC_0                          fa@0                      (   3)[Li]
+0011 putobject                              30
+0013 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0015 branchunless                           19
+0017 putobject_INT2FIX_0_
+0018 leave                                                            (   4)[Br]
+0019 getlocal_WC_0                          t0@6                      (   3)
+0021 putobject_INT2FIX_0_
+0022 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0024 branchunless                           28
+0026 putobject_INT2FIX_1_
+0027 leave                                                            (   4)[Br]
+0028 getlocal_WC_0                          fr@2                      (   3)
+0030 putobject                              19
+0032 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0034 branchunless                           40
+0036 getlocal_WC_0                          fr@2
+0038 jump                                   42
+0040 getlocal_WC_0                          fl@1
+0042 putobject                              46
+0044 putobject                              40
+0046 opt_plus                               <calldata!mid:+, argc:1, ARGS_SIMPLE>[CcCr]
+0048 opt_or                                 <calldata!mid:|, argc:1, ARGS_SIMPLE>[CcCr]
+0050 leave                                                            (   4)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 0 : (cr > 0 ? 1 : 2))
+}
+--- AFTER disasm (23 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          cr@4                      (   2)
+0013 putobject_INT2FIX_0_
+0014 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0016 branchunless                           20
+0018 putobject_INT2FIX_1_
+0019 leave                                                            (   3)[Br]
+0020 putobject                              2                         (   2)
+0022 leave                                                            (   3)[Br]
+==============================================================================
+[t=  400] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  400] AMNESIA   AMNESIA: GC.start(full_mark: true) forgot 799 heap slots (extinct minds reclaimed)
+[t=  440] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  450] COMPACT   ENLIGHTENMENT: GC.compact moved 1616/1641 objects in 6.6ms
+[t=  480] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  503] PREPEND   species #1 collapsing -> singleton_class.prepend(Instinct): Yarvpilled::Instinct < #<Class:#<#<Class:0x00
+[t=  520] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  542] REWRITE   TracePoint(:call) rewrote #9#think mid-call: 23w -> 23w, in-flight=0 next=0
+==============================================================================
+SELF-REWRITE at tick 540 (fired t=541): species #9 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 0
+next call (new bytecode) returned:      0   inputs=[42, 30, 42, 149, 0, 67]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 0 : (cr > 0 ? 1 : 2))
+}
+--- BEFORE disasm (23 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          cr@4                      (   2)
+0013 putobject_INT2FIX_0_
+0014 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0016 branchunless                           20
+0018 putobject_INT2FIX_1_
+0019 leave                                                            (   3)[Br]
+0020 putobject                              2                         (   2)
+0022 leave                                                            (   3)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 0 : (fa > 0 ? 1 : 2))
+}
+--- AFTER disasm (23 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          fa@0                      (   2)
+0013 putobject_INT2FIX_0_
+0014 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0016 branchunless                           20
+0018 putobject_INT2FIX_1_
+0019 leave                                                            (   3)[Br]
+0020 putobject                              2                         (   2)
+0022 leave                                                            (   3)[Br]
+==============================================================================
+[t=  560] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  600] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  640] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  676] DREAM     dreamed constant from heap: Gem::SourceFetchProblem=>27
+[t=  680] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  692] REWRITE   TracePoint(:call) rewrote #17#think mid-call: 59w -> 23w, in-flight=0 next=1
+==============================================================================
+SELF-REWRITE at tick 690 (fired t=691): species #17 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 0
+next call (new bytecode) returned:      1   inputs=[30, 30, 7, 68, 2, 58]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  t0 = ((48 < fr ? 12 : fr) < fl ? (fl - fr) : (ag | fl))
+  (fa == 30 ? 0 : (t0 > 0 ? 1 : 2))
+}
+--- BEFORE disasm (59 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(4,1)>
+local table (size: 7, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 7] fa@0<Arg>  [ 6] fl@1<Arg>  [ 5] fr@2<Arg>  [ 4] en@3<Arg>  [ 3] cr@4<Arg>  [ 2] ag@5<Arg>  [ 1] t0@6
+0000 nop                                                              (   1)[Bc]
+0001 putobject                              48                        (   2)[Li]
+0003 getlocal_WC_0                          fr@2
+0005 opt_lt                                 <calldata!mid:<, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           13
+0009 putobject                              12
+0011 jump                                   15
+0013 getlocal_WC_0                          fr@2
+0015 getlocal_WC_0                          fl@1
+0017 opt_lt                                 <calldata!mid:<, argc:1, ARGS_SIMPLE>[CcCr]
+0019 branchunless                           29
+0021 getlocal_WC_0                          fl@1
+0023 getlocal_WC_0                          fr@2
+0025 opt_minus                              <calldata!mid:-, argc:1, ARGS_SIMPLE>[CcCr]
+0027 jump                                   35
+0029 getlocal_WC_0                          ag@5
+0031 getlocal_WC_0                          fl@1
+0033 opt_or                                 <calldata!mid:|, argc:1, ARGS_SIMPLE>[CcCr]
+0035 setlocal_WC_0                          t0@6
+0037 getlocal_WC_0                          fa@0                      (   3)[Li]
+0039 putobject                              30
+0041 opt_eq                                 <calldata!mid:==, argc:1, ARGS_SIMPLE>[CcCr]
+0043 branchunless                           47
+0045 putobject_INT2FIX_0_
+0046 leave                                                            (   4)[Br]
+0047 getlocal_WC_0                          t0@6                      (   3)
+0049 putobject_INT2FIX_0_
+0050 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0052 branchunless                           56
+0054 putobject_INT2FIX_1_
+0055 leave                                                            (   4)[Br]
+0056 putobject                              2                         (   3)
+0058 leave                                                            (   4)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fl > 30 ? 0 : (fa > 0 ? 1 : 2))
+}
+--- AFTER disasm (23 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fl@1                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          fa@0                      (   2)
+0013 putobject_INT2FIX_0_
+0014 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0016 branchunless                           20
+0018 putobject_INT2FIX_1_
+0019 leave                                                            (   3)[Br]
+0020 putobject                              2                         (   2)
+0022 leave                                                            (   3)[Br]
+==============================================================================
+[t=  720] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  750] COMPACT   ENLIGHTENMENT: GC.compact moved 1485/1500 objects in 7.0ms
+[t=  760] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 2/6 votes
+[t=  774] DREAM     dreamed constant from heap: IO::ConsoleMode=>18
+[t=  800] VOTE      Ractor hive-mind (6 isolates) blesses #1 with 2/6 votes
+[t=  820] AMNESIA   AMNESIA: GC.start(full_mark: true) forgot 6553 heap slots (extinct minds reclaimed)
+[t=  840] VOTE      Ractor hive-mind (6 isolates) blesses #1 with 2/6 votes
+[t=  842] REWRITE   TracePoint(:call) rewrote #25#think mid-call: 32w -> 46w, in-flight=2 next=0
+==============================================================================
+SELF-REWRITE at tick 840 (fired t=841): species #25 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 2
+next call (new bytecode) returned:      0   inputs=[102, 102, 47, 174, 3, 53]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  t0 = (fl - fr)
+  (fa == 30 ? 0 : (t0 > 0 ? 33 : 2))
+}
+--- BEFORE disasm (32 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(4,1)>
+local table (size: 7, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 7] fa@0<Arg>  [ 6] fl@1<Arg>  [ 5] fr@2<Arg>  [ 4] en@3<Arg>  [ 3] cr@4<Arg>  [ 2] ag@5<Arg>  [ 1] t0@6
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fl@1                      (   2)[Li]
+0003 getlocal_WC_0                          fr@2
+0005 opt_minus                              <calldata!mid:-, argc:1, ARGS_SIMPLE>[CcCr]
+0007 setlocal_WC_0                          t0@6
+0009 getlocal_WC_0                          fa@0                      (   3)[Li]
+0011 putobject                              30
+0013 opt_eq                                 <calldata!mid:==, argc:1, ARGS_SIMPLE>[CcCr]
+0015 branchunless                           19
+0017 putobject_INT2FIX_0_
+0018 leave                                                            (   4)[Br]
+0019 getlocal_WC_0                          t0@6                      (   3)
+0021 putobject_INT2FIX_0_
+0022 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0024 branchunless                           29
+0026 putobject                              33
+0028 leave                                                            (   4)[Br]
+0029 putobject                              2                         (   3)
+0031 leave                                                            (   4)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 0 : (fa > 0 ? [[cr, ag].min, (fr == 56 ? cr : en)].max : 2))
+}
+--- AFTER disasm (46 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          fa@0                      (   2)
+0013 putobject_INT2FIX_0_
+0014 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0016 branchunless                           43
+0018 getlocal_WC_0                          cr@4
+0020 getlocal_WC_0                          ag@5
+0022 opt_newarray_send                      2, 2
+0025 getlocal_WC_0                          fr@2
+0027 putobject                              56
+0029 opt_eq                                 <calldata!mid:==, argc:1, ARGS_SIMPLE>[CcCr]
+0031 branchunless                           37
+0033 getlocal_WC_0                          cr@4
+0035 jump                                   39
+0037 getlocal_WC_0                          en@3
+0039 opt_newarray_send                      2, 1
+0042 leave                                                            (   3)[Br]
+0043 putobject                              2                         (   2)
+0045 leave                                                            (   3)[Br]
+==============================================================================
+[t=  866] DREAM     dreamed constant from heap: DidYouMean::PatternKeyNameChecker=>34
+[t=  880] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t=  920] VOTE      Ractor hive-mind (6 isolates) blesses #48 with 4/6 votes
+[t=  960] VOTE      Ractor hive-mind (6 isolates) blesses #48 with 4/6 votes
+[t=  992] REWRITE   TracePoint(:call) rewrote #30#think mid-call: 31w -> 24w, in-flight=1 next=0
+==============================================================================
+SELF-REWRITE at tick 990 (fired t=991): species #30 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 1
+next call (new bytecode) returned:      0   inputs=[99, 98, 99, 168, 0, 58]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  t0 = (fl - fr)
+  (en == 30 ? 0 : (t0 > 0 ? 1 : 2))
+}
+--- BEFORE disasm (31 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(4,1)>
+local table (size: 7, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 7] fa@0<Arg>  [ 6] fl@1<Arg>  [ 5] fr@2<Arg>  [ 4] en@3<Arg>  [ 3] cr@4<Arg>  [ 2] ag@5<Arg>  [ 1] t0@6
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fl@1                      (   2)[Li]
+0003 getlocal_WC_0                          fr@2
+0005 opt_minus                              <calldata!mid:-, argc:1, ARGS_SIMPLE>[CcCr]
+0007 setlocal_WC_0                          t0@6
+0009 getlocal_WC_0                          en@3                      (   3)[Li]
+0011 putobject                              30
+0013 opt_eq                                 <calldata!mid:==, argc:1, ARGS_SIMPLE>[CcCr]
+0015 branchunless                           19
+0017 putobject_INT2FIX_0_
+0018 leave                                                            (   4)[Br]
+0019 getlocal_WC_0                          t0@6                      (   3)
+0021 putobject_INT2FIX_0_
+0022 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0024 branchunless                           28
+0026 putobject_INT2FIX_1_
+0027 leave                                                            (   4)[Br]
+0028 putobject                              2                         (   3)
+0030 leave                                                            (   4)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 0 : (fa > 21 ? 1 : 2))
+}
+--- AFTER disasm (24 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          fa@0                      (   2)
+0013 putobject                              21
+0015 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0017 branchunless                           21
+0019 putobject_INT2FIX_1_
+0020 leave                                                            (   3)[Br]
+0021 putobject                              2                         (   2)
+0023 leave                                                            (   3)[Br]
+==============================================================================
+[t= 1000] VOTE      Ractor hive-mind (6 isolates) blesses #1 with 2/6 votes
+[t= 1040] VOTE      Ractor hive-mind (6 isolates) blesses #1 with 2/6 votes
+[t= 1050] COMPACT   ENLIGHTENMENT: GC.compact moved 2776/2791 objects in 10.1ms
+[t= 1054] DREAM     dreamed constant from heap: Dir=>18
+[t= 1058] PREPEND   species #7 collapsing -> singleton_class.prepend(Instinct): Yarvpilled::Instinct < #<Class:#<#<Class:0x00
+[t= 1080] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 1120] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 1142] REWRITE   TracePoint(:call) rewrote #33#think mid-call: 32w -> 23w, in-flight=1 next=1
+==============================================================================
+SELF-REWRITE at tick 1140 (fired t=1141): species #33 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 1
+next call (new bytecode) returned:      1   inputs=[30, 30, 65, 142, 2, 76]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  t0 = (fl - fr)
+  (fa == 30 ? 43 : (t0 > 0 ? 1 : 2))
+}
+--- BEFORE disasm (32 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(4,1)>
+local table (size: 7, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 7] fa@0<Arg>  [ 6] fl@1<Arg>  [ 5] fr@2<Arg>  [ 4] en@3<Arg>  [ 3] cr@4<Arg>  [ 2] ag@5<Arg>  [ 1] t0@6
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fl@1                      (   2)[Li]
+0003 getlocal_WC_0                          fr@2
+0005 opt_minus                              <calldata!mid:-, argc:1, ARGS_SIMPLE>[CcCr]
+0007 setlocal_WC_0                          t0@6
+0009 getlocal_WC_0                          fa@0                      (   3)[Li]
+0011 putobject                              30
+0013 opt_eq                                 <calldata!mid:==, argc:1, ARGS_SIMPLE>[CcCr]
+0015 branchunless                           20
+0017 putobject                              43
+0019 leave                                                            (   4)[Br]
+0020 getlocal_WC_0                          t0@6                      (   3)
+0022 putobject_INT2FIX_0_
+0023 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0025 branchunless                           29
+0027 putobject_INT2FIX_1_
+0028 leave                                                            (   4)[Br]
+0029 putobject                              2                         (   3)
+0031 leave                                                            (   4)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 0 : (fa > 0 ? 1 : 2))
+}
+--- AFTER disasm (23 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          fa@0                      (   2)
+0013 putobject_INT2FIX_0_
+0014 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0016 branchunless                           20
+0018 putobject_INT2FIX_1_
+0019 leave                                                            (   3)[Br]
+0020 putobject                              2                         (   2)
+0022 leave                                                            (   3)[Br]
+==============================================================================
+[t= 1150] DREAM     dreamed constant from heap: Errno::ENAMETOOLONG=>19
+[t= 1160] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 1200] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 1221] PREPEND   species #0 collapsing -> singleton_class.prepend(Instinct): Yarvpilled::Instinct < #<Class:#<#<Class:0x00
+[t= 1240] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 1240] AMNESIA   AMNESIA: GC.start(full_mark: true) forgot 4293 heap slots (extinct minds reclaimed)
+[t= 1280] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 1288] DREAM     dreamed constant from heap: RubyVM::InstructionSequence=>41
+[t= 1292] REWRITE   TracePoint(:call) rewrote #33#think mid-call: 23w -> 43w, in-flight=0 next=0
+==============================================================================
+SELF-REWRITE at tick 1290 (fired t=1291): species #33 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 0
+next call (new bytecode) returned:      0   inputs=[74, 51, 74, 137, 1, 95]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 0 : (fa > 0 ? 1 : 2))
+}
+--- BEFORE disasm (23 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          fa@0                      (   2)
+0013 putobject_INT2FIX_0_
+0014 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0016 branchunless                           20
+0018 putobject_INT2FIX_1_
+0019 leave                                                            (   3)[Br]
+0020 putobject                              2                         (   2)
+0022 leave                                                            (   3)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  t0 = ((fr == cr ? fa : fl) % 7)
+  (fa > 30 ? 0 : (fa > 0 ? 1 : 2))
+}
+--- AFTER disasm (43 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(4,1)>
+local table (size: 7, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 7] fa@0<Arg>  [ 6] fl@1<Arg>  [ 5] fr@2<Arg>  [ 4] en@3<Arg>  [ 3] cr@4<Arg>  [ 2] ag@5<Arg>  [ 1] t0@6
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fr@2                      (   2)[Li]
+0003 getlocal_WC_0                          cr@4
+0005 opt_eq                                 <calldata!mid:==, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           13
+0009 getlocal_WC_0                          fa@0
+0011 jump                                   15
+0013 getlocal_WC_0                          fl@1
+0015 putobject                              7
+0017 opt_mod                                <calldata!mid:%, argc:1, ARGS_SIMPLE>[CcCr]
+0019 setlocal_WC_0                          t0@6
+0021 getlocal_WC_0                          fa@0                      (   3)[Li]
+0023 putobject                              30
+0025 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0027 branchunless                           31
+0029 putobject_INT2FIX_0_
+0030 leave                                                            (   4)[Br]
+0031 getlocal_WC_0                          fa@0                      (   3)
+0033 putobject_INT2FIX_0_
+0034 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0036 branchunless                           40
+0038 putobject_INT2FIX_1_
+0039 leave                                                            (   4)[Br]
+0040 putobject                              2                         (   3)
+0042 leave                                                            (   4)[Br]
+==============================================================================
+[t= 1320] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 1350] COMPACT   ENLIGHTENMENT: GC.compact moved 2162/2187 objects in 6.5ms
+[t= 1360] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 1374] DREAM     dreamed constant from heap: Class=>11
+[t= 1400] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 1440] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 1442] REWRITE   TracePoint(:call) rewrote #73#think mid-call: 38w -> 36w, in-flight=0 next=3
+==============================================================================
+SELF-REWRITE at tick 1440 (fired t=1441): species #73 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 0
+next call (new bytecode) returned:      3   inputs=[105, 105, 98, 42, 0, 85]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 0 : (((cr == fa ? 11 : ag) * (ag ^ 36)) & 4095))
+}
+--- BEFORE disasm (38 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          cr@4                      (   2)
+0013 getlocal_WC_0                          fa@0
+0015 opt_eq                                 <calldata!mid:==, argc:1, ARGS_SIMPLE>[CcCr]
+0017 branchunless                           23
+0019 putobject                              11
+0021 jump                                   25
+0023 getlocal_WC_0                          ag@5
+0025 getlocal_WC_0                          ag@5
+0027 putobject                              36
+0029 opt_send_without_block                 <calldata!mid:^, argc:1, ARGS_SIMPLE>
+0031 opt_mult                               <calldata!mid:*, argc:1, ARGS_SIMPLE>[CcCr]
+0033 putobject                              4095
+0035 opt_and                                <calldata!mid:&, argc:1, ARGS_SIMPLE>[CcCr]
+0037 leave                                                            (   3)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? (((15 * fa) & 4095) % 6) : (fa > 0 ? 1 : 2))
+}
+--- AFTER disasm (36 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           24
+0009 putobject                              15
+0011 getlocal_WC_0                          fa@0
+0013 opt_mult                               <calldata!mid:*, argc:1, ARGS_SIMPLE>[CcCr]
+0015 putobject                              4095
+0017 opt_and                                <calldata!mid:&, argc:1, ARGS_SIMPLE>[CcCr]
+0019 putobject                              6
+0021 opt_mod                                <calldata!mid:%, argc:1, ARGS_SIMPLE>[CcCr]
+0023 leave                                                            (   3)[Br]
+0024 getlocal_WC_0                          fa@0                      (   2)
+0026 putobject_INT2FIX_0_
+0027 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0029 branchunless                           33
+0031 putobject_INT2FIX_1_
+0032 leave                                                            (   3)[Br]
+0033 putobject                              2                         (   2)
+0035 leave                                                            (   3)[Br]
+==============================================================================
+[t= 1451] DREAM     dreamed constant from heap: Errno::ENOTSOCK=>15
+[t= 1480] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 1520] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 1560] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 1592] REWRITE   TracePoint(:call) rewrote #73#think mid-call: 36w -> 23w, in-flight=3 next=0
+==============================================================================
+SELF-REWRITE at tick 1590 (fired t=1591): species #73 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 3
+next call (new bytecode) returned:      0   inputs=[145, 26, 3, 42, 1, 104]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? (((15 * fa) & 4095) % 6) : (fa > 0 ? 1 : 2))
+}
+--- BEFORE disasm (36 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           24
+0009 putobject                              15
+0011 getlocal_WC_0                          fa@0
+0013 opt_mult                               <calldata!mid:*, argc:1, ARGS_SIMPLE>[CcCr]
+0015 putobject                              4095
+0017 opt_and                                <calldata!mid:&, argc:1, ARGS_SIMPLE>[CcCr]
+0019 putobject                              6
+0021 opt_mod                                <calldata!mid:%, argc:1, ARGS_SIMPLE>[CcCr]
+0023 leave                                                            (   3)[Br]
+0024 getlocal_WC_0                          fa@0                      (   2)
+0026 putobject_INT2FIX_0_
+0027 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0029 branchunless                           33
+0031 putobject_INT2FIX_1_
+0032 leave                                                            (   3)[Br]
+0033 putobject                              2                         (   2)
+0035 leave                                                            (   3)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 0 : (fa == 0 ? 1 : 2))
+}
+--- AFTER disasm (23 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          fa@0                      (   2)
+0013 putobject_INT2FIX_0_
+0014 opt_eq                                 <calldata!mid:==, argc:1, ARGS_SIMPLE>[CcCr]
+0016 branchunless                           20
+0018 putobject_INT2FIX_1_
+0019 leave                                                            (   3)[Br]
+0020 putobject                              2                         (   2)
+0022 leave                                                            (   3)[Br]
+==============================================================================
+[t= 1600] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 1640] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 1650] COMPACT   ENLIGHTENMENT: GC.compact moved 2679/2698 objects in 7.1ms
+[t= 1660] AMNESIA   AMNESIA: GC.start(full_mark: true) forgot 11124 heap slots (extinct minds reclaimed)
+[t= 1680] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 1720] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 1742] REWRITE   TracePoint(:call) rewrote #115#think mid-call: 31w -> 23w, in-flight=1 next=0
+==============================================================================
+SELF-REWRITE at tick 1740 (fired t=1741): species #115 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 1
+next call (new bytecode) returned:      0   inputs=[55, 48, 55, 148, 1, 94]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  t0 = (fl - fr)
+  (cr > 27 ? 0 : (t0 > 0 ? 1 : 2))
+}
+--- BEFORE disasm (31 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(4,1)>
+local table (size: 7, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 7] fa@0<Arg>  [ 6] fl@1<Arg>  [ 5] fr@2<Arg>  [ 4] en@3<Arg>  [ 3] cr@4<Arg>  [ 2] ag@5<Arg>  [ 1] t0@6
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fl@1                      (   2)[Li]
+0003 getlocal_WC_0                          fr@2
+0005 opt_minus                              <calldata!mid:-, argc:1, ARGS_SIMPLE>[CcCr]
+0007 setlocal_WC_0                          t0@6
+0009 getlocal_WC_0                          cr@4                      (   3)[Li]
+0011 putobject                              27
+0013 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0015 branchunless                           19
+0017 putobject_INT2FIX_0_
+0018 leave                                                            (   4)[Br]
+0019 getlocal_WC_0                          t0@6                      (   3)
+0021 putobject_INT2FIX_0_
+0022 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0024 branchunless                           28
+0026 putobject_INT2FIX_1_
+0027 leave                                                            (   4)[Br]
+0028 putobject                              2                         (   3)
+0030 leave                                                            (   4)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 0 : (fa > 0 ? 1 : 2))
+}
+--- AFTER disasm (23 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          fa@0                      (   2)
+0013 putobject_INT2FIX_0_
+0014 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0016 branchunless                           20
+0018 putobject_INT2FIX_1_
+0019 leave                                                            (   3)[Br]
+0020 putobject                              2                         (   2)
+0022 leave                                                            (   3)[Br]
+==============================================================================
+[t= 1760] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 1800] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 1840] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 1880] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 1892] REWRITE   TracePoint(:call) rewrote #124#think mid-call: 63w -> 27w, in-flight=2 next=0
+==============================================================================
+SELF-REWRITE at tick 1890 (fired t=1891): species #124 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 2
+next call (new bytecode) returned:      0   inputs=[168, 101, 16, 1, 2, 102]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  t0 = (fl - fr)
+  (fa == 30 ? ([fa, cr].max < ag ? (fl > cr ? 61 : fr) : (fr | fl)) : (t0 > 0 ? 1 : 2))
+}
+--- BEFORE disasm (63 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(4,1)>
+local table (size: 7, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 7] fa@0<Arg>  [ 6] fl@1<Arg>  [ 5] fr@2<Arg>  [ 4] en@3<Arg>  [ 3] cr@4<Arg>  [ 2] ag@5<Arg>  [ 1] t0@6
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fl@1                      (   2)[Li]
+0003 getlocal_WC_0                          fr@2
+0005 opt_minus                              <calldata!mid:-, argc:1, ARGS_SIMPLE>[CcCr]
+0007 setlocal_WC_0                          t0@6
+0009 getlocal_WC_0                          fa@0                      (   3)[Li]
+0011 putobject                              30
+0013 opt_eq                                 <calldata!mid:==, argc:1, ARGS_SIMPLE>[CcCr]
+0015 branchunless                           51
+0017 getlocal_WC_0                          fa@0
+0019 getlocal_WC_0                          cr@4
+0021 opt_newarray_send                      2, 1
+0024 getlocal_WC_0                          ag@5
+0026 opt_lt                                 <calldata!mid:<, argc:1, ARGS_SIMPLE>[CcCr]
+0028 branchunless                           44
+0030 getlocal_WC_0                          fl@1
+0032 getlocal_WC_0                          cr@4
+0034 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0036 branchunless                           41
+0038 putobject                              61
+0040 leave                                                            (   4)[Br]
+0041 getlocal_WC_0                          fr@2                      (   3)
+0043 leave                                                            (   4)[Br]
+0044 getlocal_WC_0                          fr@2                      (   3)
+0046 getlocal_WC_0                          fl@1
+0048 opt_or                                 <calldata!mid:|, argc:1, ARGS_SIMPLE>[CcCr]
+0050 leave                                                            (   4)[Br]
+0051 getlocal_WC_0                          t0@6                      (   3)
+0053 putobject_INT2FIX_0_
+0054 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0056 branchunless                           60
+0058 putobject_INT2FIX_1_
+0059 leave                                                            (   4)[Br]
+0060 putobject                              2                         (   3)
+0062 leave                                                            (   4)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  t0 = ag
+  (fa > 30 ? 0 : (fa > 0 ? 1 : 2))
+}
+--- AFTER disasm (27 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(4,1)>
+local table (size: 7, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 7] fa@0<Arg>  [ 6] fl@1<Arg>  [ 5] fr@2<Arg>  [ 4] en@3<Arg>  [ 3] cr@4<Arg>  [ 2] ag@5<Arg>  [ 1] t0@6
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          ag@5                      (   2)[Li]
+0003 setlocal_WC_0                          t0@6
+0005 getlocal_WC_0                          fa@0                      (   3)[Li]
+0007 putobject                              30
+0009 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0011 branchunless                           15
+0013 putobject_INT2FIX_0_
+0014 leave                                                            (   4)[Br]
+0015 getlocal_WC_0                          fa@0                      (   3)
+0017 putobject_INT2FIX_0_
+0018 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0020 branchunless                           24
+0022 putobject_INT2FIX_1_
+0023 leave                                                            (   4)[Br]
+0024 putobject                              2                         (   3)
+0026 leave                                                            (   4)[Br]
+==============================================================================
+[t= 1920] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 1949] DREAM     dreamed constant from heap: NoMemoryError=>13
+[t= 1950] COMPACT   ENLIGHTENMENT: GC.compact moved 2691/2719 objects in 8.4ms
+[t= 1960] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 2000] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 2013] DREAM     dreamed constant from heap: Errno::ENOCSI=>13
+[t= 2040] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 2042] REWRITE   TracePoint(:call) rewrote #144#think mid-call: 31w -> 24w, in-flight=8 next=8
+==============================================================================
+SELF-REWRITE at tick 2040 (fired t=2041): species #144 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 8
+next call (new bytecode) returned:      8   inputs=[68, 84, 41, 90, 4, 105]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? ((fa >> 1) >> 2) : (fa > 0 ? 1 : 2))
+}
+--- BEFORE disasm (31 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           19
+0009 getlocal_WC_0                          fa@0
+0011 putobject_INT2FIX_1_
+0012 opt_send_without_block                 <calldata!mid:>>, argc:1, ARGS_SIMPLE>
+0014 putobject                              2
+0016 opt_send_without_block                 <calldata!mid:>>, argc:1, ARGS_SIMPLE>
+0018 leave                                                            (   3)[Br]
+0019 getlocal_WC_0                          fa@0                      (   2)
+0021 putobject_INT2FIX_0_
+0022 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0024 branchunless                           28
+0026 putobject_INT2FIX_1_
+0027 leave                                                            (   3)[Br]
+0028 putobject                              2                         (   2)
+0030 leave                                                            (   3)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 8 : (fa > 0 ? 1 : 2))
+}
+--- AFTER disasm (24 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           12
+0009 putobject                              8
+0011 leave                                                            (   3)[Br]
+0012 getlocal_WC_0                          fa@0                      (   2)
+0014 putobject_INT2FIX_0_
+0015 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0017 branchunless                           21
+0019 putobject_INT2FIX_1_
+0020 leave                                                            (   3)[Br]
+0021 putobject                              2                         (   2)
+0023 leave                                                            (   3)[Br]
+==============================================================================
+[t= 2080] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 3/6 votes
+[t= 2080] AMNESIA   AMNESIA: GC.start(full_mark: true) forgot 827 heap slots (extinct minds reclaimed)
+[t= 2120] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 2160] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 2179] DREAM     dreamed constant from heap: Yarvpilled::Renderer=>23
+[t= 2192] REWRITE   TracePoint(:call) rewrote #162#think mid-call: 28w -> 23w, in-flight=0 next=0
+==============================================================================
+SELF-REWRITE at tick 2190 (fired t=2191): species #162 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 0
+next call (new bytecode) returned:      0   inputs=[72, 2, 72, 94, 1, 103]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  [(((46 < 41 ? fr : fl) >> 2) >> 1), fr].min
+}
+--- BEFORE disasm (28 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 putobject                              46                        (   2)[Li]
+0003 putobject                              41
+0005 opt_lt                                 <calldata!mid:<, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           13
+0009 getlocal_WC_0                          fr@2
+0011 jump                                   15
+0013 getlocal_WC_0                          fl@1
+0015 putobject                              2
+0017 opt_send_without_block                 <calldata!mid:>>, argc:1, ARGS_SIMPLE>
+0019 putobject_INT2FIX_1_
+0020 opt_send_without_block                 <calldata!mid:>>, argc:1, ARGS_SIMPLE>
+0022 getlocal_WC_0                          fr@2
+0024 opt_newarray_send                      2, 2
+0027 leave                                                            (   3)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fr > 30 ? 0 : (fa > 0 ? 1 : 2))
+}
+--- AFTER disasm (23 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fr@2                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          fa@0                      (   2)
+0013 putobject_INT2FIX_0_
+0014 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0016 branchunless                           20
+0018 putobject_INT2FIX_1_
+0019 leave                                                            (   3)[Br]
+0020 putobject                              2                         (   2)
+0022 leave                                                            (   3)[Br]
+==============================================================================
+[t= 2200] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 5/6 votes
+[t= 2210] DREAM     dreamed constant from heap: Encoding::CompatibilityError=>28
+[t= 2240] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 2250] COMPACT   ENLIGHTENMENT: GC.compact moved 2753/2775 objects in 10.3ms
+[t= 2280] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 2320] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 2342] REWRITE   TracePoint(:call) rewrote #212#think mid-call: 24w -> 24w, in-flight=0 next=0
+==============================================================================
+SELF-REWRITE at tick 2340 (fired t=2341): species #212 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 0
+next call (new bytecode) returned:      0   inputs=[47, 47, 92, 48, 2, 70]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 0 : (fa > 16 ? 1 : 2))
+}
+--- BEFORE disasm (24 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          fa@0                      (   2)
+0013 putobject                              16
+0015 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0017 branchunless                           21
+0019 putobject_INT2FIX_1_
+0020 leave                                                            (   3)[Br]
+0021 putobject                              2                         (   2)
+0023 leave                                                            (   3)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 0 : (fa > 0 ? 7 : 2))
+}
+--- AFTER disasm (24 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          fa@0                      (   2)
+0013 putobject_INT2FIX_0_
+0014 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0016 branchunless                           21
+0018 putobject                              7
+0020 leave                                                            (   3)[Br]
+0021 putobject                              2                         (   2)
+0023 leave                                                            (   3)[Br]
+==============================================================================
+[t= 2360] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 2400] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 2401] DREAM     dreamed constant from heap: Errno::ENOTRECOVERABLE=>22
+[t= 2440] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 5/6 votes
+[t= 2480] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+[t= 2492] REWRITE   TracePoint(:call) rewrote #218#think mid-call: 31w -> 24w, in-flight=1 next=0
+==============================================================================
+SELF-REWRITE at tick 2490 (fired t=2491): species #218 <- apex #4
+TracePoint(:call) target method: think   caller_locations inside hook:
+    genome:1:block in <compiled>
+    simulation.rb:133:block (3 levels) in Yarvpilled::Simulation#attend!
+    simulation.rb:131:Array#each
+    simulation.rb:131:Enumerable#each_with_index
+    simulation.rb:131:block (2 levels) in Yarvpilled::Simulation#attend!
+in-flight call (old bytecode) returned: 1
+next call (new bytecode) returned:      0   inputs=[35, 32, 39, 67, 0, 82]
+--- BEFORE source ---
+->(fa, fl, fr, en, cr, ag) {
+  t0 = (fl - fr)
+  (t0 == 30 ? 0 : (t0 > 0 ? 1 : 2))
+}
+--- BEFORE disasm (31 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(4,1)>
+local table (size: 7, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 7] fa@0<Arg>  [ 6] fl@1<Arg>  [ 5] fr@2<Arg>  [ 4] en@3<Arg>  [ 3] cr@4<Arg>  [ 2] ag@5<Arg>  [ 1] t0@6
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fl@1                      (   2)[Li]
+0003 getlocal_WC_0                          fr@2
+0005 opt_minus                              <calldata!mid:-, argc:1, ARGS_SIMPLE>[CcCr]
+0007 setlocal_WC_0                          t0@6
+0009 getlocal_WC_0                          t0@6                      (   3)[Li]
+0011 putobject                              30
+0013 opt_eq                                 <calldata!mid:==, argc:1, ARGS_SIMPLE>[CcCr]
+0015 branchunless                           19
+0017 putobject_INT2FIX_0_
+0018 leave                                                            (   4)[Br]
+0019 getlocal_WC_0                          t0@6                      (   3)
+0021 putobject_INT2FIX_0_
+0022 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0024 branchunless                           28
+0026 putobject_INT2FIX_1_
+0027 leave                                                            (   4)[Br]
+0028 putobject                              2                         (   3)
+0030 leave                                                            (   4)[Br]
+--- AFTER source ---
+->(fa, fl, fr, en, cr, ag) {
+  (fa > 30 ? 0 : (fa > fa ? 1 : 2))
+}
+--- AFTER disasm (24 words) ---
+== disasm: #<ISeq:block in <compiled>@genome:1 (1,2)-(3,1)>
+local table (size: 6, argc: 6 [opts: 0, rest: -1, post: 0, block: -1, kw: -1@-1, kwrest: -1])
+[ 6] fa@0<Arg>  [ 5] fl@1<Arg>  [ 4] fr@2<Arg>  [ 3] en@3<Arg>  [ 2] cr@4<Arg>  [ 1] ag@5<Arg>
+0000 nop                                                              (   1)[Bc]
+0001 getlocal_WC_0                          fa@0                      (   2)[Li]
+0003 putobject                              30
+0005 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0007 branchunless                           11
+0009 putobject_INT2FIX_0_
+0010 leave                                                            (   3)[Br]
+0011 getlocal_WC_0                          fa@0                      (   2)
+0013 getlocal_WC_0                          fa@0
+0015 opt_gt                                 <calldata!mid:>, argc:1, ARGS_SIMPLE>[CcCr]
+0017 branchunless                           21
+0019 putobject_INT2FIX_1_
+0020 leave                                                            (   3)[Br]
+0021 putobject                              2                         (   2)
+0023 leave                                                            (   3)[Br]
+==============================================================================
+[t= 2495] DREAM     dreamed constant from heap: Errno::ECONNREFUSED=>19
+[t= 2500] AMNESIA   AMNESIA: GC.start(full_mark: true) forgot 6428 heap slots (extinct minds reclaimed)
+[t= 2520] VOTE      Ractor hive-mind (6 isolates) blesses #4 with 4/6 votes
+
+SUMMARY {frames: 1260, seconds_wall: 34.4, ticks: 2520, max_gen: 11, births: 1076, species_ever: 333, alive: 312, rewrites: 17, compacts: 8, amnesias: 6, mutations: 325, think_calls: 567138, apex: 4, apex_len: 23, live_instructions: 5055, distinct_opcodes: 21}

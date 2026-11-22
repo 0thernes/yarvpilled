@@ -1,0 +1,24 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby: ["3.3", "3.4"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+      - name: Compile C extension
+        run: rake compile
+      - name: Tests (interpreter)
+        run: rake test
+      - name: Tests (YJIT)
+        run: RUBYOPT=--yjit rake test
+      - name: Smoke run
+        run: ruby --yjit yarv_brain.rb --headless --ticks=300 | tail -1

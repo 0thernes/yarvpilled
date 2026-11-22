@@ -1,0 +1,7 @@
+/tmp/
+/out/
+*.so
+*.bundle
+*.o
+Makefile
+mkmf.log
