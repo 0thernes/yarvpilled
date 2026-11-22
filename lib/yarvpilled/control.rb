@@ -74,8 +74,47 @@ module Yarvpilled
       }
     end
 
-    # Exact two-sided permutation test on the difference of means.
-    def permutation_p(a, b)
+    EXACT_LIMIT = 200_000 # relabelings; above this use a seeded Monte Carlo permutation test
+    MC_PERMUTATIONS = 100_000
+    BOOTSTRAP = 10_000
+
+    # Two-sided permutation test on the difference of means. Exact (all
+    # relabelings) when feasible, otherwise Monte Carlo with a fixed seed and
+    # the (1 + extreme) / (1 + B) estimator, which is never anti-conservative.
+    def permutation_p(a, b, mc: MC_PERMUTATIONS, seed: 7)
+      n_rel = binom(a.size + b.size, a.size)
+      return permutation_p_exact(a, b) if n_rel <= EXACT_LIMIT
+
+      rng = Random.new(seed)
+      all = a + b
+      obs = (mean(a) - mean(b)).abs
+      extreme = 0
+      mc.times do
+        sh = all.shuffle(random: rng)
+        extreme += 1 if (mean(sh.first(a.size)) - mean(sh.drop(a.size))).abs >= obs - 1e-12
+      end
+      (1 + extreme).to_f / (1 + mc)
+    end
+
+    def binom(n, k) = (1..k).reduce(1) { |acc, i| acc * (n - k + i) / i }
+
+    # Percentile bootstrap 95% CIs (resampling within each arm, fixed seed) for
+    # the difference of means and for Cohen's d.
+    def bootstrap_ci(a, b, reps: BOOTSTRAP, seed: 42)
+      rng = Random.new(seed)
+      diffs = []
+      ds = []
+      reps.times do
+        ra = Array.new(a.size) { a[rng.rand(a.size)] }
+        rb = Array.new(b.size) { b[rng.rand(b.size)] }
+        diffs << mean(ra) - mean(rb)
+        ds << cohens_d(ra, rb)
+      end
+      q = ->(v, p) { s = v.sort; s[((s.size - 1) * p).round] }
+      { diff: [q.(diffs, 0.025), q.(diffs, 0.975)], d: [q.(ds, 0.025), q.(ds, 0.975)], reps: reps, seed: seed }
+    end
+
+    def permutation_p_exact(a, b)
       all = a + b
       n = a.size
       obs = (mean(a) - mean(b)).abs
@@ -113,18 +152,52 @@ module Yarvpilled
       final_pop: "final population (in-sim, context only)"
     }.freeze
 
-    def run(replicates:, ticks:, out_dir:, world: Native::AVAILABLE ? :native : :ruby, first_seed: 101)
+    # Replicates are independent and deterministic, so they can run in forked
+    # workers (where fork exists) without changing any result.
+    def run(replicates:, ticks:, out_dir:, world: Native::AVAILABLE ? :native : :ruby, first_seed: 101, workers: 1)
       seeds = (first_seed...(first_seed + replicates)).to_a
-      rows = seeds.flat_map do |s|
-        %i[selection drift].map do |c|
-          $stderr.puts "  seed #{s} #{c} ..."
-          replicate(seed: s, control: c, ticks: ticks, world: world)
-        end
+      jobs = seeds.flat_map { |s| %i[selection drift].map { |c| [s, c] } }
+      rows = parallel_map(jobs, workers) do |s, c|
+        $stderr.puts "  seed #{s} #{c} ..."
+        replicate(seed: s, control: c, ticks: ticks, world: world)
       end
-      report(rows, replicates: replicates, ticks: ticks, out_dir: out_dir, world: world)
+      report(rows, replicates: replicates, ticks: ticks, out_dir: out_dir, world: world, first_seed: first_seed)
+    end
+
+    def parallel_map(jobs, workers, &blk)
+      return jobs.map(&blk) if workers <= 1 || !Process.respond_to?(:fork)
+
+      jobs.each_slice((jobs.size.to_f / workers).ceil).map do |chunk|
+        rd, wr = IO.pipe
+        pid = fork do
+          rd.close
+          wr.write(Marshal.dump(chunk.map(&blk)))
+          wr.close
+          exit!(0)
+        end
+        wr.close
+        [pid, rd]
+      end.flat_map do |pid, rd|
+        data = rd.read
+        rd.close
+        Process.wait(pid)
+        raise "control worker #{pid} failed" unless $?.success?
+
+        Marshal.load(data)
+      end
     end
 
     # Holm-Bonferroni step-down adjustment across the metrics tested.
+    def perm_desc(n)
+      rel = binom(2 * n, n)
+      rel <= EXACT_LIMIT ? "exact, all C(#{2 * n},#{n}) = #{rel} relabelings" : "Monte Carlo, #{MC_PERMUTATIONS} seeded relabelings of C(#{2 * n},#{n}) = #{rel}"
+    end
+
+    def min_p(n)
+      rel = binom(2 * n, n)
+      rel <= EXACT_LIMIT ? 2.0 / rel : 1.0 / (1 + MC_PERMUTATIONS)
+    end
+
     def holm(ps)
       order = ps.each_with_index.sort_by(&:first)
       adj = Array.new(ps.size)
@@ -136,7 +209,7 @@ module Yarvpilled
       adj
     end
 
-    def report(rows, replicates:, ticks:, out_dir:, world:)
+    def report(rows, replicates:, ticks:, out_dir:, world:, first_seed: 101)
       rows = rows.map { |r| r.transform_keys(&:to_sym).merge(control: r[:control].to_sym) }
       seed_fit, seed_surv = assay(Genome.seed)
       md = +"# Selection vs. random drift (control experiment)\n\n"
@@ -144,25 +217,29 @@ module Yarvpilled
             "Selection: brain output drives behaviour, cost scales with bytecode. Drift (null model): brain still runs, " \
             "actions are random, cost is flat, so genomes carry no fitness signal. " \
             "Common-garden assay: top #{TOP_K} species per population (abundance-weighted), #{ASSAY_N} clones each, " \
-            "#{ASSAY_TICKS} ticks, flat cost, no reproduction. Test: exact two-sided permutation test on the difference " \
-            "of means (all C(#{2 * replicates},#{replicates}) = #{(1..2 * replicates).reduce(:*) / (1..replicates).reduce(:*)**2} relabelings), " \
-            "with Holm-Bonferroni correction across the #{METRICS.size} metrics. The hand-written seed genome scores " \
+            "#{ASSAY_TICKS} ticks, flat cost, no reproduction. Seeds #{first_seed}..#{first_seed + replicates - 1}. " \
+            "Test: two-sided permutation test on the difference of means (#{perm_desc(replicates)}), " \
+            "with Holm-Bonferroni correction across the #{METRICS.size} metrics; 95% percentile bootstrap CIs " \
+            "(#{BOOTSTRAP} resamples within arm, seed 42) for the difference and for Cohen's d. The hand-written seed genome scores " \
             "fitness #{seed_fit.round(3)} and survival #{seed_surv.round(3)} in the same assay.\n\n"
-      md << "| metric | selection mean +/- sd | drift mean +/- sd | diff | Cohen's d | permutation p | Holm-adjusted p |\n|---|---:|---:|---:|---:|---:|---:|\n"
+      md << "| metric | selection mean +/- sd | drift mean +/- sd | diff [95% CI] | Cohen's d [95% CI] | permutation p | Holm-adjusted p |\n|---|---:|---:|---:|---:|---:|---:|\n"
       stats = METRICS.to_h do |k, _|
         a = rows.select { _1[:control] == :selection }.map { _1[k].to_f }
         b = rows.select { _1[:control] == :drift }.map { _1[k].to_f }
-        [k, { selection: a, drift: b, p: permutation_p(a, b), d: cohens_d(a, b) }]
+        [k, { selection: a, drift: b, p: permutation_p(a, b), d: cohens_d(a, b), ci: bootstrap_ci(a, b) }]
       end
       adj = holm(stats.values.map { _1[:p] })
       stats.each_with_index do |(k, st), i|
         st[:p_holm] = adj[i]
         a = st[:selection]
         b = st[:drift]
-        md << format("| %s | %.3f +/- %.3f | %.3f +/- %.3f | %+.3f | %.2f | %.4f | %.4f |\n", METRICS[k], mean(a), sd(a), mean(b), sd(b),
-                     mean(a) - mean(b), st[:d], st[:p], adj[i])
+        ci = st[:ci]
+        md << format("| %s | %.3f +/- %.3f | %.3f +/- %.3f | %+.3f [%+.3f, %+.3f] | %.2f [%.2f, %.2f] | %.4f | %.4f |\n", METRICS[k],
+                     mean(a), sd(a), mean(b), sd(b), mean(a) - mean(b), ci[:diff][0], ci[:diff][1], st[:d], ci[:d][0], ci[:d][1],
+                     st[:p], adj[i])
       end
       md << "\nPer-replicate rows are in control.json.\n"
+      md << "\nThe minimum attainable p is #{format('%.2g', min_p(replicates))}.\n"
       File.write(File.join(out_dir, "control.md"), md)
       File.write(File.join(out_dir, "control.json"), JSON.pretty_generate(rows: rows, stats: stats, seed_genome: { fitness: seed_fit, survival: seed_surv }))
       md

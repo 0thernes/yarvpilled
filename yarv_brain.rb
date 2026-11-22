@@ -27,6 +27,8 @@ OptionParser.new do |o|
   o.on("--bench-tier", "(internal) run one tier") { opts[:mode] = :bench_tier }
   o.on("--control", "selection vs drift control experiment") { opts[:mode] = :control }
   o.on("--replicates=N", Integer, "control: seeds per condition (default 8)") { opts[:replicates] = _1 }
+  o.on("--first-seed=N", Integer, "control: first seed (default 101)") { opts[:first_seed] = _1 }
+  o.on("--workers=N", Integer, "control: parallel worker processes (default 1)") { opts[:workers] = _1 }
   o.on("--repeats=N", Integer, "bench: runs per tier (default 5)") { opts[:repeats] = _1 }
   o.on("--world=KIND", %w[native c asm rust ruby], "native/c, asm, rust (C ext backends) or ruby") { opts[:world] = _1.to_sym }
   o.on("--seed=N", Integer) { opts[:seed] = _1 }
@@ -51,7 +53,8 @@ when :bench_tier
 when :bench
   puts Yarvpilled::Bench.run_all(ticks: opts[:ticks], seed: opts[:seed], out_dir: opts[:out], repeats: opts[:repeats] || 5)
 when :control
-  puts Yarvpilled::Control.run(replicates: opts[:replicates] || 8, ticks: opts[:ticks], out_dir: opts[:out])
+  puts Yarvpilled::Control.run(replicates: opts[:replicates] || 8, ticks: opts[:ticks], out_dir: opts[:out],
+                               first_seed: opts[:first_seed] || 101, workers: opts[:workers] || 1)
 when :tui
   sim = Yarvpilled::Simulation.new(seed: opts[:seed], world: opts[:world])
   Yarvpilled::TUI.new(sim).run(frames: opts[:frames], ticks_per_frame: 1)
