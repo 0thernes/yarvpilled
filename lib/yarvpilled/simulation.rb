@@ -343,7 +343,9 @@ module Yarvpilled
         rec[:fired_tick] = @tick
         rec[:method] = t.method_id
         rec[:stack] = caller_locations(1, 6).map { |l| "#{File.basename(l.path.to_s)}:#{l.lineno}:#{l.label}" }
-        weak.mind.class.define_method(:think, &donor.brain)
+        klass = weak.mind.class
+        klass.send(:remove_method, :think) if klass.method_defined?(:think, false) # explicit swap: no -w redefinition warning
+        klass.define_method(:think, &donor.brain)
         rec[:after_disasm] = RubyVM::InstructionSequence.of(weak.mind.class.instance_method(:think)).disasm
         rec[:stage] = :rewritten
       end

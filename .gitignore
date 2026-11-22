@@ -27,3 +27,10 @@ Thumbs.db
 /_site/
 /pkg/
 *.gem
+
+# Lean build output
+/formal/lean/.lake/
+# libFuzzer crash artifacts written to the repo root by hand-run fuzzers
+/crash-*
+/leak-*
+/timeout-*

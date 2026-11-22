@@ -17,3 +17,7 @@ docs/*.json                 linguist-generated
 docs/run_log.txt            linguist-generated
 ext/yarvpilled_rust/Cargo.lock linguist-generated
 docs/**                     linguist-documentation
+
+# fuzzer inputs are raw bytes: never touch line endings
+fuzz/corpus/** binary
+fuzz/regressions/** binary

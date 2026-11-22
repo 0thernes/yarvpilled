@@ -85,6 +85,10 @@ module Yarvpilled
       n_rel = binom(a.size + b.size, a.size)
       return permutation_p_exact(a, b) if n_rel <= EXACT_LIMIT
 
+      permutation_p_mc(a, b, mc: mc, seed: seed)
+    end
+
+    def permutation_p_mc(a, b, mc: MC_PERMUTATIONS, seed: 7)
       rng = Random.new(seed)
       all = a + b
       obs = (mean(a) - mean(b)).abs
@@ -187,7 +191,6 @@ module Yarvpilled
       end
     end
 
-    # Holm-Bonferroni step-down adjustment across the metrics tested.
     def fmt_p(p) = p < 0.001 ? format("%.1e", p) : format("%.4f", p)
 
     # Re-render control.md/.json from saved per-replicate rows (no re-simulation).
@@ -209,6 +212,7 @@ module Yarvpilled
       rel <= EXACT_LIMIT ? 2.0 / rel : 1.0 / (1 + MC_PERMUTATIONS)
     end
 
+    # Holm-Bonferroni step-down adjustment across the metrics tested.
     def holm(ps)
       order = ps.each_with_index.sort_by(&:first)
       adj = Array.new(ps.size)

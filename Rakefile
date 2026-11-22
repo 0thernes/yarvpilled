@@ -134,4 +134,34 @@ task :clean do
   Dir.glob(SO_GLOB).each { FileUtils.rm_f(_1) }
 end
 
+desc "Run the whole test suite against an ASan+UBSan build of the C extension (Linux), then rebuild normally"
+task :sanitize do
+  abort "rake sanitize needs Linux + gcc" unless RbConfig::CONFIG["host_os"].include?("linux")
+  cc = ENV.fetch("CC", "gcc")
+  rt = %w[libasan.so libubsan.so].map { `#{cc} -print-file-name=#{_1}`.strip }
+  san_build = File.join(ROOT, "tmp/sanitize")
+  FileUtils.rm_rf(san_build)
+  FileUtils.mkdir_p(san_build)
+  ok = false
+  begin
+    Dir.chdir(san_build) do
+      env = { "YP_SANITIZE" => "1" }
+      env["YP_RUST_LIB"] = RUST_LIB if File.exist?(RUST_LIB)
+      sh env, RUBY, File.join(ROOT, "ext/yarvpilled_native/extconf.rb")
+      sh "make"
+      Dir.glob(SO_GLOB).each { FileUtils.rm_f(_1) }
+      FileUtils.cp("yarvpilled_native.so", File.join(ROOT, "lib/yarvpilled/"))
+    end
+    # use_sigaltstack=0: Ruby installs its own alternate signal stack; ASan's
+    # conflicts with it on thread exit ("failed to deallocate").
+    env = { "LD_PRELOAD" => rt.join(" "), "ASAN_OPTIONS" => "detect_leaks=0:use_sigaltstack=0:abort_on_error=1",
+            "UBSAN_OPTIONS" => "halt_on_error=1:print_stacktrace=1" }
+    ok = system(env, RUBY, "-Ilib", "-Itest", "-e", 'Dir["test/test_*.rb"].sort.each { require "./#{_1}" }', chdir: ROOT)
+  ensure
+    Rake::Task[:compile].invoke
+  end
+  abort "sanitizer run failed" unless ok
+  puts "sanitizer run: all tests passed under ASan + UBSan"
+end
+
 task default: %i[compile test]

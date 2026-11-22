@@ -10,6 +10,15 @@ require "mkmf"
 have_library("m", "cos")
 $CFLAGS << " -O3 -std=gnu99 -ffp-contract=off -Wall -Wextra -Wno-unused-parameter"
 
+# YP_SANITIZE=1 (rake sanitize): ASan + UBSan instrumented build for running
+# the Ruby test suite against the extension. Linux + gcc/clang only.
+if ENV["YP_SANITIZE"] == "1"
+  san = " -fsanitize=address,undefined,float-cast-overflow -fno-sanitize-recover=undefined,float-cast-overflow -fno-omit-frame-pointer -g"
+  $CFLAGS << san << " -O1"
+  $LDFLAGS << san
+  puts "sanitizer build:#{san}"
+end
+
 srcdir = File.expand_path(__dir__)
 $srcs = %w[native.c world.c kernel_c.c raster.c].map { File.join(srcdir, _1) }
 $objs = %w[native.o world.o kernel_c.o raster.o]

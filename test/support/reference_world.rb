@@ -19,8 +19,6 @@ module Yarvpilled
 
     Creature = Struct.new(:x, :y, :heading, :energy, :species, :cost, :age, :last_action, :alive)
 
-    attr_reader :used
-
     def initialize(width, height, food_cell, capacity)
       @w = width.to_f
       @h = height.to_f
