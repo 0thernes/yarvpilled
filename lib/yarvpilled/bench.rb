@@ -3,6 +3,7 @@
 require "json"
 require "rbconfig"
 require "etc"
+require_relative "state_digest"
 
 module Yarvpilled
   # Honest multi-tier benchmark.
@@ -72,6 +73,7 @@ module Yarvpilled
     def world_api(world)
       updates = 0
       spent = 0.0
+      digest = nil
       while spent < 1.0
         w = fresh_world(world)
         sens = Array.new(520 * 6, 0)
@@ -82,8 +84,9 @@ module Yarvpilled
           w.act(acts, 1 << 60)
         end
         spent += now - t0
+        digest ||= StateDigest.world(w) # correctness check next to the timing
       end
-      { world_api_updates_per_sec: updates / spent }
+      { world_api_updates_per_sec: updates / spent, world_api_digest: digest }
     end
 
     def kernel(world)
@@ -93,15 +96,18 @@ module Yarvpilled
       ts = ta = tc = 0.0
       updates = 0
       crowd_ok = true
+      digest = nil
       while ts + ta < 1.0
-        s, a, c, u = fresh_world(world).kernel_bench(MICRO_TICKS)
+        wk = fresh_world(world)
+        s, a, c, u = wk.kernel_bench(MICRO_TICKS)
+        digest ||= StateDigest.world(wk)
         ts += s
         ta += a
         c ? tc += c : crowd_ok = false
         updates += u
       end
       { kernel_updates_per_sec: updates / (ts + ta), kernel_sense_share: ts / (ts + ta),
-        crowd_ns: crowd_ok ? tc / updates * 1e9 : nil }
+        crowd_ns: crowd_ok ? tc / updates * 1e9 : nil, kernel_digest: digest }
     end
 
     def stats(vals)
@@ -132,16 +138,51 @@ module Yarvpilled
         end
         [label, res]
       end
-      report(runs, ticks: ticks, seed: seed, out_dir: out_dir, repeats: repeats)
+      report(runs, ticks: ticks, seed: seed, out_dir: out_dir, repeats: repeats, hardware: hardware)
     end
 
-    def report(runs, ticks:, seed:, out_dir:, repeats:)
+    def sh_first(*cmd)
+      IO.popen(cmd, err: File::NULL, &:read).lines.first&.strip
+    rescue SystemCallError
+      nil
+    end
+
+    def read(path) = File.exist?(path) ? File.read(path).strip : nil
+
+    # Captured once per benchmark run and stored next to the numbers.
+    def hardware
+      cpuinfo = read("/proc/cpuinfo").to_s
+      mem = read("/proc/meminfo").to_s[/MemTotal:\s+(\d+)/, 1]
+      {
+        cpu: cpuinfo[/model name\s*:\s*(.*)/, 1] || sh_first("sysctl", "-n", "machdep.cpu.brand_string") || RbConfig::CONFIG["host_cpu"],
+        logical_cpus: Etc.nprocessors, cpu_flags_avx2: cpuinfo.include?(" avx2"),
+        cpu_mhz: cpuinfo[/cpu MHz\s*:\s*(.*)/, 1]&.to_f,
+        governor: read("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"),
+        mem_gb: mem && (mem.to_i / 1024.0 / 1024).round(1),
+        os: RbConfig::CONFIG["host_os"], kernel: sh_first("uname", "-sr"),
+        virtualization: sh_first("systemd-detect-virt"),
+        loadavg_at_start: read("/proc/loadavg")&.split&.first(3)&.join(" "),
+        ruby: RUBY_DESCRIPTION, yjit_available: system(RbConfig.ruby, "--yjit", "-e", "exit(defined?(RubyVM::YJIT) && RubyVM::YJIT.enabled? ? 0 : 1)", err: File::NULL),
+        cc: sh_first(RbConfig::CONFIG["CC"].split.first, "--version"), rustc: sh_first("rustc", "-V"),
+        git_commit: sh_first("git", "-C", File.expand_path("../..", __dir__), "rev-parse", "--short=12", "HEAD"),
+        git_dirty: !IO.popen(["git", "-C", File.expand_path("../..", __dir__), "status", "--porcelain", "--untracked-files=no"], err: File::NULL, &:read).strip.empty?,
+        date_utc: Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+      }
+    end
+
+    def report(runs, ticks:, seed:, out_dir:, repeats:, hardware: nil)
       base = stats(runs.values.first.map { _1[:creatures_per_sec] })[:median]
       base_api = stats(runs.values.first.map { _1[:world_api_updates_per_sec] })[:median]
-      cpu = File.read("/proc/cpuinfo")[/model name\s*:\s*(.*)/, 1] rescue RUBY_PLATFORM
+      hw = hardware || {}
+      cpu = hw[:cpu] || (File.read("/proc/cpuinfo")[/model name\s*:\s*(.*)/, 1] rescue RUBY_PLATFORM)
       md = +"# YARVPILLED benchmark\n\n"
-      md << "ruby #{RUBY_VERSION} | #{cpu} | #{Etc.nprocessors} cpus | seed #{seed} | #{ticks} ticks | " \
+      md << "ruby #{RUBY_VERSION} | #{cpu} | #{hw[:logical_cpus] || Etc.nprocessors} cpus | seed #{seed} | #{ticks} ticks | " \
             "#{repeats} runs per tier, each a fresh process | values are **median (min-max)**\n\n"
+      unless hw.empty?
+        md << "<details><summary>Hardware and toolchain (captured at run time)</summary>\n\n| key | value |\n|---|---|\n"
+        hw.each { |k, v| md << "| #{k} | #{v.to_s.gsub('|', '/')} |\n" }
+        md << "\n</details>\n\n"
+      end
       md << "## Full simulation (brains + world)\n\n"
       md << "| tier | creatures/sec | generations/sec | ticks/sec | vs pure Ruby | time in brains (YARV think) | time compiling births (mutate+ISeq) | time in world (sense+act) | spread | checksum |\n"
       md << "|---|---:|---:|---:|---:|---:|---:|---:|---:|---|\n"
@@ -162,12 +203,20 @@ module Yarvpilled
         md << "| #{label} | #{fmt(api)} | #{format('%.1fx', api[:median] / base_api)} | #{fmt(stats(rs.map { _1[:kernel_updates_per_sec] }))} | " \
               "#{fmt(stats(rs.map { _1[:crowd_ns] }), 1)} | #{format('%.1f%%', api[:spread_pct])} |\n"
       end
-      sums = runs.values.flatten.map { _1[:checksum] }.uniq
+      all = runs.values.flatten
+      sums = all.map { _1[:checksum] }.uniq
+      md << "\n## Correctness next to every timing\n\n"
+      md << "| check | distinct values across all #{all.size} runs | ok |\n|---|---|---|\n"
+      [[:checksum, "full-sim checksum (births-maxgen-alive-eaten-species)"], [:world_api_digest, "world-API benchmark: state digest after the first 600-tick block"],
+       [:kernel_digest, "kernel-only benchmark: state digest after the first 600-tick block"]].each do |key, label|
+        vals = all.map { _1[key] }.compact.uniq
+        md << "| #{label} | `#{vals.join(', ')}` | #{vals.size <= 1 ? 'yes' : '**NO**'} |\n"
+      end
       md << "\nIdentical full-sim checksum across all #{runs.values.flatten.size} runs: **#{sums.size == 1}** (`#{sums.join(', ')}`; " \
             "births-maxgen-alive-food_eaten-species). The world backends are also bit-identical step by step " \
             "(test/test_world_equivalence.rb).\n"
       File.write(File.join(out_dir, "bench.md"), md)
-      File.write(File.join(out_dir, "bench.json"), JSON.pretty_generate(runs))
+      File.write(File.join(out_dir, "bench.json"), JSON.pretty_generate(hardware ? { hardware: hardware, runs: runs } : runs))
       md
     end
   end

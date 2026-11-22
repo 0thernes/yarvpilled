@@ -21,6 +21,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "world.h"
+#include "trig_table.h"
 
 static void world_free(void *p) {
   World *w = p;
@@ -287,7 +288,9 @@ static VALUE world_stats(VALUE self) {
 }
 
 void Init_yarvpilled_world(VALUE mNative) {
-  for (int k = 0; k < NDIR; k++) { yp_cos_t[k] = cos(2.0 * M_PI * k / 64.0); yp_sin_t[k] = sin(2.0 * M_PI * k / 64.0); }
+  /* Directions come from literal IEEE-754 bit patterns, not the platform libm. */
+  memcpy(yp_cos_t, YP_COS_BITS, sizeof yp_cos_t);
+  memcpy(yp_sin_t, YP_SIN_BITS, sizeof yp_sin_t);
   VALUE c = rb_define_class_under(mNative, "World", rb_cObject);
   rb_define_alloc_func(c, world_alloc);
   rb_define_method(c, "initialize", world_init, -1);

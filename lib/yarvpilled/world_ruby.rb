@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "trig_table"
+
 module Yarvpilled
   # Pure-Ruby port of ext/yarvpilled_native/world.c. Same API, same integer
   # and IEEE-754 arithmetic in the same order, so both tiers produce
@@ -12,8 +14,8 @@ module Yarvpilled
     CROWD_R = 20.0
     MAX_AGE = 900
     FOOD_MAX = 255
-    COS_T = Array.new(NDIR) { |k| Math.cos(2.0 * Math::PI * k / 64.0) }.freeze
-    SIN_T = Array.new(NDIR) { |k| Math.sin(2.0 * Math::PI * k / 64.0) }.freeze
+    COS_T = TrigTable::COS # literal bit patterns shared with the C kernel (no libm dependence)
+    SIN_T = TrigTable::SIN
 
     def initialize(width, height, food_cell, capacity)
       raise ArgumentError, "bad world params" if food_cell <= 0 || capacity <= 0
