@@ -1,4 +1,5 @@
 name: CI
+# Informational only: nothing here gates a push or a merge.
 
 on:
   push:
@@ -16,6 +17,7 @@ concurrency:
 
 jobs:
   linux:
+    timeout-minutes: 15
     name: ubuntu / Ruby ${{ matrix.ruby }} (C + asm + Rust)
     runs-on: ubuntu-latest
     strategy:
@@ -44,6 +46,7 @@ jobs:
         run: rake smoke
 
   macos:
+    timeout-minutes: 15
     name: macOS / Ruby 3.4 (C + Rust, arm64)
     runs-on: macos-latest
     env:
@@ -59,6 +62,29 @@ jobs:
       - name: Backends
         run: ruby yarv_brain.rb --version
       - name: Tests
+        run: rake test
+      - name: Smoke run (headless, 300 ticks)
+        run: rake smoke
+
+  windows:
+    timeout-minutes: 20
+    name: Windows / Ruby 3.4 (RubyInstaller + DevKit, pure-Ruby fallback)
+    runs-on: windows-latest
+    continue-on-error: true # experimental: keeps the workflow green while Windows support matures
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - name: Compile C extension (falls back to pure Ruby if the DevKit build fails)
+        run: rake compile
+      - name: Backends
+        run: ruby yarv_brain.rb --version
+      - name: Tests
+        run: rake test
+      - name: Tests (forced pure Ruby)
+        env:
+          YARVPILLED_PURE: "1"
         run: rake test
       - name: Smoke run (headless, 300 ticks)
         run: rake smoke

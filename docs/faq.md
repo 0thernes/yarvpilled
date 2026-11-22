@@ -30,7 +30,7 @@ Yes, through the pure-Ruby fallback. Install RubyInstaller **with DevKit**. `rak
 enables the DevKit's MSYS2 toolchain and tries to build the C extension (no asm, no Rust on
 Windows). If that fails, it prints a warning and everything runs in pure Ruby. The
 simulation, TUI (Windows Terminal), browser mode and tests all work. `--video` needs
-`ffmpeg` on PATH. CI does not cover Windows yet, so reports are welcome.
+`ffmpeg` on PATH. CI has an informational Windows job; reports are welcome.
 
 ### Do I need YJIT?
 No, but it helps the brains a lot (about 1.9x end to end in pure Ruby). Check

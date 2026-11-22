@@ -11,6 +11,9 @@ Zero models. Pure CRuby. World loop in Ruby, C, Rust or hand-written x86-64 asm,
 [![Ruby](https://img.shields.io/badge/ruby-3.3%20%7C%203.4-CC342D?logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
 [![YJIT](https://img.shields.io/badge/YJIT-ready-CC342D)](https://docs.ruby-lang.org/en/master/yjit/yjit_md.html)
 [![Gems](https://img.shields.io/badge/runtime%20gems-0-brightgreen)](docs/adr/0003-stdlib-only.md)
+[![Demo](https://img.shields.io/badge/demo-GitHub%20Pages-00ebff)](https://0thernes.github.io/yarvpilled/)
+
+**[Watch it in your browser](https://0thernes.github.io/yarvpilled/)**: a replay of a real CRuby run, recorded by CI.
 
 ![YARVPILLED: a live run](docs/yarvpilled.gif)
 
@@ -85,6 +88,13 @@ rake compile && rake test                               # :asm is x86-64 Linux o
 ruby --yjit yarv_brain.rb --tui
 ```
 
+### As a gem (from a clone; not on RubyGems yet)
+
+```sh
+rake gem && gem install pkg/yarvpilled-*.gem    # compiles the C ext on install (Rust backend is repo-only)
+yarvpilled --tui                                # same CLI as yarv_brain.rb; output goes to ./out
+```
+
 ### Windows (RubyInstaller + DevKit)
 
 ```powershell
@@ -127,8 +137,13 @@ Options: `--world=native|c|asm|rust|ruby`, `--seed=N`, `--ticks=N`, `--seconds=N
 | `rake bench` | Multi-tier benchmark (`REPEATS=5 TICKS=2000`), written to `out/bench.md` and `.json`. |
 | `rake control` | Selection vs drift (`REPLICATES=8 TICKS=4000`), written to `out/control.md` and `.json`. |
 | `rake video` | Renders the MP4, GIF, stills and run log (needs ffmpeg). |
-| `rake clean` | Removes `tmp/`, the compiled extension and the Rust `target/`. |
+| `rake site` | Builds the GitHub Pages demo into `_site/` (a 900-tick replay of a real run). |
+| `rake gem` | Builds `pkg/yarvpilled-VERSION.gem`. |
+| `rake labels` | Syncs the issue labels with `gh` (`DRY=1` prints the commands). |
+| `rake clean` | Removes `tmp/`, `_site/`, `pkg/`, the compiled extension and the Rust `target/`. |
 | `rake` | Runs `compile`, then `test`. |
+
+Prefer [`just`](https://github.com/casey/just)? `just --list` shows the same recipes (it works on Windows too).
 
 The video renderer outpaces real time on a modern CPU: 1260 frames of 1280x720 (42 s at 30 fps)
 render in about 34 s while the simulation runs. So the MP4 is a recording of a live run, not an
@@ -269,8 +284,8 @@ generations).
   1.85). Run-to-run spread is 10-15%, so differences under that are noise.
 - **The asm backend is x86-64 SysV only** (Linux/BSD). On macOS, arm64 and Windows, `:asm`
   uses the C crowd scan. The Rust backend is not wired up on Windows.
-- **Windows is not covered by CI.** The pure-Ruby fallback is expected to work there, but
-  native builds under the RubyInstaller DevKit have not been tested.
+- **Windows support is experimental.** It has a CI job (RubyInstaller + DevKit), but that job
+  is informational. The pure-Ruby fallback is the guaranteed path.
 - **Runs with events on aren't bit-reproducible.** Ractor votes and GC events depend on
   scheduling. Benchmarks and the control experiment turn events off, and those runs are
   deterministic.
@@ -295,6 +310,7 @@ entry point is registered as variadic (`argc, argv`). See the comment in
 - [docs/bench.md](docs/bench.md) / [bench.json](docs/bench.json): full benchmark report
 - [docs/control.md](docs/control.md) / [control.json](docs/control.json): selection vs drift report
 - [docs/faq.md](docs/faq.md): FAQ
+- [ROADMAP.md](ROADMAP.md): what's next
 - [docs/run_log.txt](docs/run_log.txt): log of the run shown in the GIF (TracePoint rewrites with before/after disasm)
 - [CHANGELOG.md](CHANGELOG.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md) · [SUPPORT.md](SUPPORT.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
@@ -308,7 +324,7 @@ reads [CITATION.cff](CITATION.cff).
   author  = {0thernes},
   title   = {yarvpilled: an A-Life world where every brain is a live YARV instruction sequence},
   year    = {2026},
-  version = {0.2.0},
+  version = {0.3.0},
   url     = {https://github.com/0thernes/yarvpilled},
   license = {MIT}
 }

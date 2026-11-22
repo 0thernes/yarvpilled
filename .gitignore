@@ -24,3 +24,6 @@ extconf.h
 Thumbs.db
 .idea/
 .vscode/
+/_site/
+/pkg/
+*.gem

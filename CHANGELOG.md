@@ -6,6 +6,26 @@ and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-22
+
+### Added
+- GitHub Pages demo: `tools/build_site.rb` (`rake site`, `just site`) records a 900-tick run of the
+  real simulation as gzipped NDJSON telemetry, and `public/index.html` plays it back in replay mode.
+  `.github/workflows/pages.yml` builds it in CI. The recording is never committed.
+- Windows CI job (RubyInstaller + DevKit). It is informational and marked `continue-on-error`.
+- `yarvpilled.gemspec` and the `exe/yarvpilled` CLI (`rake gem`). The C extension compiles on install;
+  the Rust backend stays repo-only.
+- `justfile` with cross-platform recipes (PowerShell on Windows).
+- `tools/labels.rb` (`rake labels`): the issue label set, synced with `gh label create --force`.
+- `ROADMAP.md` and `docs/social-preview.png` (1280x640).
+
+### Changed
+- CONTRIBUTING trimmed to the essentials. CI is explicitly informational, with per-job timeouts.
+- The browser page labels the world backend correctly (C / asm / Rust / pure Ruby) and shows
+  LIVE vs REPLAY.
+- `yarv_brain.rb` writes to `./out` in the current directory by default, so it works from an
+  installed gem.
+
 ## [0.2.0] - 2026-11-22
 
 ### Added
@@ -62,6 +82,7 @@ and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Worked around a YJIT 3.4.7 panic on fixed-arity cfuncs with more than 5 arguments by exposing
   those C entry points as variadic.
 
-[Unreleased]: https://github.com/0thernes/yarvpilled/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/0thernes/yarvpilled/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/0thernes/yarvpilled/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/0thernes/yarvpilled/releases/tag/v0.2.0
 [0.1.0]: https://github.com/0thernes/yarvpilled/commit/39effb6f014d78b6e0006b374264b98f3bcb5b61

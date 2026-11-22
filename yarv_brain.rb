@@ -17,7 +17,7 @@ require "etc"
 require "yarvpilled"
 
 opts = { mode: :headless, world: Yarvpilled::Native::AVAILABLE ? :native : :ruby, seed: 11, seconds: 40, fps: 30,
-         tpf: 2, ticks: 1500, out: File.join(__dir__, "out"), frames: nil }
+         tpf: 2, ticks: 1500, out: File.join(Dir.pwd, "out"), frames: nil }
 OptionParser.new do |o|
   o.banner = "usage: ruby [--yjit] yarv_brain.rb [mode] [options]"
   o.on("--video", "render MP4 + GIF + stills + run log") { opts[:mode] = :video }

@@ -5,7 +5,7 @@ type: software
 authors:
   - alias: "0thernes"
     email: "0_0@0thernes.art"
-version: "0.2.0"
+version: "0.3.0"
 date-released: "2026-11-22"
 license: MIT
 repository-code: "https://github.com/0thernes/yarvpilled"

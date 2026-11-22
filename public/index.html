@@ -16,8 +16,8 @@
 <div id="status">connecting to /events ...</div>
 <script>
 "use strict";
-// Every value drawn here arrives over Server-Sent Events from the running
-// CRuby process (server.rb -> Yarvpilled::Telemetry). No client-side sim.
+// Every value drawn here comes from a running CRuby process
+// (server.rb -> Yarvpilled::Telemetry), live over SSE or as a recording. No client-side sim.
 const C = document.getElementById("c"), g = C.getContext("2d");
 const W = 1280, H = 720, WX = 12, WY = 56, WW = 768, WH = 512;
 const trail = document.createElement("canvas"); trail.width = WW; trail.height = WH;
@@ -39,13 +39,40 @@ function ingest(d) {
   if (popHist.length > 380) { popHist.shift(); spHist.shift(); }
   S = d;
 }
-// ?once renders a single /state.json snapshot (handy for headless screenshots);
-// normal mode subscribes to the live SSE stream.
-const es = location.search.includes("once") ? { set onerror(_) {} } : new EventSource("/events");
-if (location.search.includes("once")) fetch("/state.json").then((r) => r.json()).then(ingest);
-else es.addEventListener("frame", (ev) => ingest(JSON.parse(ev.data)));
-es.onerror = () => { document.getElementById("status").textContent = "stream lost, retrying..."; };
-setInterval(() => { document.getElementById("status").textContent = `SSE live: ${msgs} frames/s from CRuby ${S ? S.ruby : ""} ${S && S.yjit ? "+YJIT" : ""} | world ${S ? S.world.impl : ""}`; msgs = 0; }, 1000);
+// Three modes, all fed by real CRuby telemetry:
+//  * live (default): subscribe to server.rb's SSE stream at /events
+//  * ?once: render a single /state.json snapshot (handy for headless screenshots)
+//  * replay (GitHub Pages): window.YP_REPLAY names a gzipped NDJSON recording of
+//    Telemetry frames from a real run (tools/build_site.rb); played back at its tick rate.
+const statusEl = document.getElementById("status");
+if (window.YP_REPLAY) {
+  statusEl.textContent = "loading recording ...";
+  (async () => {
+    const buf = await (await fetch(window.YP_REPLAY)).arrayBuffer();
+    const head = new Uint8Array(buf, 0, 2), gz = head[0] === 0x1f && head[1] === 0x8b; // host may have decoded it already
+    const text = gz ? await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).text()
+                    : new TextDecoder().decode(buf);
+    const frames = text.split("\n").filter((l) => l.length).map((l) => JSON.parse(l));
+    const meta = frames.shift();
+    let i = 0;
+    setInterval(() => {
+      if (i >= frames.length) { i = 0; popHist = []; spHist = []; }
+      ingest(frames[i++]);
+    }, 1000 / (meta.tps || 20));
+    setInterval(() => {
+      statusEl.innerHTML = `replay of a real run: CRuby ${meta.ruby}${meta.yjit ? " +YJIT" : ""} | world ${meta.world} | seed ${meta.seed} | ` +
+        `tick ${S ? S.t : 0}/${frames.length} | recorded ${meta.recorded} | <a href="${meta.repo}" style="color:#0ef">run it live</a>`;
+      msgs = 0;
+    }, 500);
+  })().catch((e) => { statusEl.textContent = "could not load recording: " + e; });
+} else {
+  const once = location.search.includes("once");
+  const es = once ? { set onerror(_) {} } : new EventSource("/events");
+  if (once) fetch("/state.json").then((r) => r.json()).then(ingest);
+  else es.addEventListener("frame", (ev) => ingest(JSON.parse(ev.data)));
+  es.onerror = () => { statusEl.textContent = "stream lost, retrying..."; };
+  setInterval(() => { statusEl.textContent = `SSE live: ${msgs} frames/s from CRuby ${S ? S.ruby : ""} ${S && S.yjit ? "+YJIT" : ""} | world ${S ? S.world.impl : ""}`; msgs = 0; }, 1000);
+}
 
 function panel(x, y, w, h, title, col) {
   g.fillStyle = "rgba(6,8,18,0.85)"; g.fillRect(x, y, w, h);
@@ -150,7 +177,7 @@ function header() {
   g.font = "bold 22px 'DejaVu Sans Mono', monospace"; g.fillStyle = MAG; g.fillText("YARVPILLED", 15, 31); g.fillStyle = CYAN; g.fillText("YARVPILLED", 13, 29); g.fillStyle = "#eef"; g.fillText("YARVPILLED", 14, 30);
   g.restore();
   text(" // pure ISeq cognition // zero models", 160, 29, "#96d2ff", 14, true);
-  const r1 = `ruby ${S.ruby} ${S.yjit ? "+YJIT" : "(interp)"} | world: ${S.world.impl === "native" ? "C ext (ruby.h)" : "pure Ruby"} | LIVE via SSE`;
+  const r1 = `ruby ${S.ruby} ${S.yjit ? "+YJIT" : "(interp)"} | world: ${({ native: "C ext (ruby.h)", c: "C ext (ruby.h)", asm: "C + x86-64 asm", rust: "Rust kernel", ruby: "pure Ruby" })[S.world.impl] || S.world.impl} | ${window.YP_REPLAY ? "REPLAY of a recorded run" : "LIVE via SSE"}`;
   const r2 = `t=${S.t}  gen ${S.gen}  pop ${S.pop}  species ${S.species_alive}  births ${S.births}  rewrites ${S.rewrites}  compacts ${S.compacts}`;
   g.textAlign = "right"; text(r1, W - 12, 17, "#78a0dc"); text(r2, W - 12, 36, AMBER); g.textAlign = "left";
 }

@@ -7,6 +7,9 @@
 #   rake bench     multi-tier benchmark -> out/bench.md
 #   rake control   selection vs drift experiment -> out/control.md
 #   rake video     render out/yarvpilled.mp4 + gif + stills (needs ffmpeg)
+#   rake gem       build pkg/yarvpilled-VERSION.gem
+#   rake site      build the GitHub Pages demo into _site/ (replay of a real run)
+#   rake labels    create/update GitHub issue labels via gh (DRY=1 to print only)
 #   rake clean     remove build products
 #
 # Environment:
@@ -106,9 +109,27 @@ task :video do
   sh RUBY, *yjit_flag, File.join(ROOT, "yarv_brain.rb"), "--video"
 end
 
-desc "Remove build products (tmp/, compiled extension, Rust target/)"
+desc "Build pkg/yarvpilled-VERSION.gem (C ext compiles on install; Rust backend is repo-only)"
+task :gem do
+  FileUtils.mkdir_p(File.join(ROOT, "pkg"))
+  Dir.chdir(ROOT) { sh "gem", "build", "yarvpilled.gemspec", "--output", "pkg/yarvpilled-#{File.read('VERSION').strip}.gem" }
+end
+
+desc "Build the GitHub Pages demo into _site/ (TICKS=900)"
+task :site do
+  sh RUBY, *yjit_flag, File.join(ROOT, "tools/build_site.rb"), File.join(ROOT, "_site"), "--ticks=#{ENV.fetch('TICKS', '900')}"
+end
+
+desc "Create/update GitHub issue labels with gh (DRY=1 prints the commands)"
+task :labels do
+  sh RUBY, File.join(ROOT, "tools/labels.rb"), *(ENV["DRY"] == "1" ? ["--dry-run"] : [])
+end
+
+desc "Remove build products (tmp/, _site/, pkg/, compiled extension, Rust target/)"
 task :clean do
   FileUtils.rm_rf(File.join(ROOT, "tmp"))
+  FileUtils.rm_rf(File.join(ROOT, "_site"))
+  FileUtils.rm_rf(File.join(ROOT, "pkg"))
   FileUtils.rm_rf(File.join(RUST_DIR, "target"))
   Dir.glob(SO_GLOB).each { FileUtils.rm_f(_1) }
 end

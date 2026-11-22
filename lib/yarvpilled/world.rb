@@ -11,7 +11,11 @@ module Yarvpilled
     begin
       raise LoadError, "YARVPILLED_PURE set" if ENV["YARVPILLED_PURE"].to_s =~ /\A(1|true|yes)\z/i
 
-      require_relative "yarvpilled_native"
+      begin
+        require_relative "yarvpilled_native"
+      rescue LoadError
+        require "yarvpilled/yarvpilled_native" # installed gem: extension lives in the gem's extension dir
+      end
       AVAILABLE = true
     rescue LoadError
       AVAILABLE = false

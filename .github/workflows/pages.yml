@@ -1,0 +1,46 @@
+name: Pages
+# Builds the static demo (a replay of a real CRuby run) and deploys it to GitHub Pages.
+# Deploys only once Pages is enabled with "Source: GitHub Actions" (or on manual dispatch).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || github.event.repository.has_pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - name: Compile C extension (optional; pure Ruby works too)
+        run: rake compile
+      - name: Record a 45 s run and build _site/
+        run: ruby --yjit tools/build_site.rb _site --ticks=900 --seed=11
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

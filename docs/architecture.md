@@ -107,6 +107,7 @@ lib/yarvpilled/
 ext/yarvpilled_native/   native.c, world.c, world.h, kernel_c.c, crowd_x86_64.S, raster.c, extconf.rb
 ext/yarvpilled_rust/     Cargo.toml, src/lib.rs
 test/                    minitest suite
-tools/                   font atlas generator, TUI screenshot renderer
+exe/yarvpilled           gem entry point (same CLI)
+tools/                   build_site.rb (Pages replay), labels.rb, font atlas generator, TUI screenshot renderer
 docs/                    this file, ADRs, FAQ, benchmark + control reports, media
 ```

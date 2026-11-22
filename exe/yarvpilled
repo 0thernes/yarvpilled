@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Gem entry point: same CLI as `ruby yarv_brain.rb` (output goes to ./out).
+#   yarvpilled --tui | --headless | --video | --bench | --control | --version
+load File.expand_path("../yarv_brain.rb", __dir__)
