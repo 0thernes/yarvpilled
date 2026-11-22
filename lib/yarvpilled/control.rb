@@ -188,6 +188,17 @@ module Yarvpilled
     end
 
     # Holm-Bonferroni step-down adjustment across the metrics tested.
+    def fmt_p(p) = p < 0.001 ? format("%.1e", p) : format("%.4f", p)
+
+    # Re-render control.md/.json from saved per-replicate rows (no re-simulation).
+    def report_from_json(path, out_dir:)
+      j = JSON.parse(File.read(path), symbolize_names: true)
+      rows = j[:rows]
+      seeds = rows.map { _1[:seed] }.uniq.sort
+      report(rows, replicates: seeds.size, ticks: rows.first[:ticks], out_dir: out_dir, world: j[:world] || :native,
+                   first_seed: seeds.first)
+    end
+
     def perm_desc(n)
       rel = binom(2 * n, n)
       rel <= EXACT_LIMIT ? "exact, all C(#{2 * n},#{n}) = #{rel} relabelings" : "Monte Carlo, #{MC_PERMUTATIONS} seeded relabelings of C(#{2 * n},#{n}) = #{rel}"
@@ -234,9 +245,9 @@ module Yarvpilled
         a = st[:selection]
         b = st[:drift]
         ci = st[:ci]
-        md << format("| %s | %.3f +/- %.3f | %.3f +/- %.3f | %+.3f [%+.3f, %+.3f] | %.2f [%.2f, %.2f] | %.4f | %.4f |\n", METRICS[k],
+        md << format("| %s | %.3f +/- %.3f | %.3f +/- %.3f | %+.3f [%+.3f, %+.3f] | %.2f [%.2f, %.2f] | %s | %s |\n", METRICS[k],
                      mean(a), sd(a), mean(b), sd(b), mean(a) - mean(b), ci[:diff][0], ci[:diff][1], st[:d], ci[:d][0], ci[:d][1],
-                     st[:p], adj[i])
+                     fmt_p(st[:p]), fmt_p(adj[i]))
       end
       md << "\nPer-replicate rows are in control.json.\n"
       md << "\nThe minimum attainable p is #{format('%.2g', min_p(replicates))}.\n"

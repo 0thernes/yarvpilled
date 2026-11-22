@@ -48,4 +48,9 @@ H1 or H2 not supported, or reversed. Either would mean "selection measurably bea
 established at this scale, and the claim would be withdrawn from the README.
 
 ## Deviations
-None yet.
+- Report formatting only: the first rendering printed p < 0.001 as `0.0000`. The table was
+  re-rendered from the same saved rows (`Control.report_from_json`) with scientific notation.
+  Data, tests and decisions are unchanged.
+
+## Outcome (added after the run, in a later commit)
+H1-H5 are all supported (Holm p ≤ 8e-4, predicted signs). See [control.md](control.md).
