@@ -72,7 +72,13 @@ static VALUE world_init(int argc, VALUE *argv, VALUE self) {
   World *w = get_world(self);
   w->w = NUM2DBL(argv[0]); w->h = NUM2DBL(argv[1]);
   w->fcell = NUM2INT(argv[2]); w->cap = NUM2INT(argv[3]);
-  if (w->fcell <= 0 || w->cap <= 0) rb_raise(rb_eArgError, "bad world params");
+  /* Preconditions (same checks as WorldRuby): finite size of at least 3 grid
+   * cells per axis (smaller tori double-count crowding and let collision
+   * pushes escape the wrap), a food cell that fits, and a sane capacity. */
+  if (!(w->w >= YP_MIN_SIZE && w->w <= YP_MAX_SIZE && w->h >= YP_MIN_SIZE && w->h <= YP_MAX_SIZE))
+    rb_raise(rb_eArgError, "world size must be within [%d, %d]", YP_MIN_SIZE, YP_MAX_SIZE);
+  if (w->fcell <= 0 || w->fcell > YP_MIN_SIZE) rb_raise(rb_eArgError, "food cell must be in 1..%d", YP_MIN_SIZE);
+  if (w->cap <= 0 || w->cap > YP_MAX_CAP) rb_raise(rb_eArgError, "capacity must be in 1..%d", YP_MAX_CAP);
   w->backend = BACKEND_C;
   if (argc == 5 && !NIL_P(argv[4])) {
     ID b = SYM2ID(argv[4]);
@@ -188,13 +194,17 @@ static VALUE world_kernel_bench(VALUE self, VALUE viters) {
 /* spawn(x, y, heading, energy, species_id, cost) -> slot */
 static VALUE world_spawn(VALUE self, VALUE vx, VALUE vy, VALUE vh, VALUE ve, VALUE vs, VALUE vc) {
   World *w = get_world(self);
+  double px = NUM2DBL(vx), py = NUM2DBL(vy);
+  /* one wrap step must land inside the torus (rejects NaN/inf and far-away points) */
+  if (!(px >= -w->w && px < 2 * w->w && py >= -w->h && py < 2 * w->h))
+    rb_raise(rb_eArgError, "spawn position out of range");
   int slot = -1;
   for (int i = 0; i < w->used; i++) if (!w->alive[i]) { slot = i; break; }
   if (slot < 0) {
     if (w->used >= w->cap) return Qnil;
     slot = w->used++;
   }
-  w->x[slot] = wrapd(NUM2DBL(vx), w->w); w->y[slot] = wrapd(NUM2DBL(vy), w->h);
+  w->x[slot] = wrapd(px, w->w); w->y[slot] = wrapd(py, w->h);
   w->heading[slot] = NUM2INT(vh) & (NDIR - 1);
   w->energy[slot] = NUM2LONG(ve); w->species[slot] = NUM2INT(vs); w->cost[slot] = NUM2INT(vc);
   w->age[slot] = 0; w->alive[slot] = 1; w->last_action[slot] = 0;

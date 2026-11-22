@@ -17,6 +17,9 @@
 #define CROWD_R 20.0
 #define MAX_AGE 900
 #define FOOD_MAX 255
+#define YP_MIN_SIZE 72        /* 3 grid cells of 24: the 3x3 neighbourhood never aliases */
+#define YP_MAX_SIZE 1000000
+#define YP_MAX_CAP 1000000
 
 enum { BACKEND_C = 0, BACKEND_RUST = 1, BACKEND_ASM = 2 };
 

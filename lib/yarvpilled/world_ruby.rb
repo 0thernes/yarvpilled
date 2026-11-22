@@ -17,8 +17,18 @@ module Yarvpilled
     COS_T = TrigTable::COS # literal bit patterns shared with the C kernel (no libm dependence)
     SIN_T = TrigTable::SIN
 
+    MIN_SIZE = 72 # 3 grid cells of 24: the 3x3 neighbourhood never aliases
+    MAX_SIZE = 1_000_000
+    MAX_CAP = 1_000_000
+
     def initialize(width, height, food_cell, capacity)
-      raise ArgumentError, "bad world params" if food_cell <= 0 || capacity <= 0
+      [width, height].each do |v|
+        raise ArgumentError, "world size must be within [#{MIN_SIZE}, #{MAX_SIZE}]" unless v.is_a?(Numeric) && v.to_f.finite? && v >= MIN_SIZE && v <= MAX_SIZE
+      end
+      food_cell = Integer(food_cell) # same truncating conversion as NUM2INT in the C glue
+      capacity = Integer(capacity)
+      raise ArgumentError, "food cell must be in 1..#{MIN_SIZE}" unless food_cell.between?(1, MIN_SIZE)
+      raise ArgumentError, "capacity must be in 1..#{MAX_CAP}" unless capacity.between?(1, MAX_CAP)
 
       @w = width.to_f
       @h = height.to_f
@@ -198,6 +208,10 @@ module Yarvpilled
     end
 
     def spawn(x, y, heading, energy, species_id, cost)
+      x = Float(x)
+      y = Float(y)
+      raise ArgumentError, "spawn position out of range" unless x >= -@w && x < 2 * @w && y >= -@h && y < 2 * @h
+
       slot = (0...@used).find { |i| !@alive[i] }
       unless slot
         return nil if @used >= @cap
@@ -205,8 +219,8 @@ module Yarvpilled
         slot = @used
         @used += 1
       end
-      @x[slot] = wrapd(x.to_f, @w)
-      @y[slot] = wrapd(y.to_f, @h)
+      @x[slot] = wrapd(x, @w)
+      @y[slot] = wrapd(y, @h)
       @heading[slot] = heading & (NDIR - 1)
       @energy[slot] = energy
       @species[slot] = species_id

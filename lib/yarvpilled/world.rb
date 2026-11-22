@@ -44,7 +44,7 @@ module Yarvpilled
       return true if kind == :ruby
       return false unless Native::AVAILABLE
 
-      Native::World.new(8, 8, 8, 1, kind == :native ? :c : kind)
+      Native::World.new(72, 72, 8, 1, kind == :native ? :c : kind)
       true
     rescue NotImplementedError
       false

@@ -18,7 +18,7 @@ require "yarvpilled"
 
 opts = { mode: :headless, world: Yarvpilled::Native::AVAILABLE ? :native : :ruby, seed: 11, seconds: 40, fps: 30,
          tpf: 2, ticks: 1500, out: File.join(Dir.pwd, "out"), frames: nil }
-OptionParser.new do |o|
+parser = OptionParser.new do |o|
   o.banner = "usage: ruby [--yjit] yarv_brain.rb [mode] [options]"
   o.on("--video", "render MP4 + GIF + stills + run log") { opts[:mode] = :video }
   o.on("--tui", "live terminal mode") { opts[:mode] = :tui }
@@ -43,7 +43,21 @@ OptionParser.new do |o|
     puts "yarvpilled #{Yarvpilled::VERSION} (ruby #{RUBY_VERSION}, worlds: #{kinds.join(', ')})"
     exit
   end
-end.parse!
+end
+
+# Bad arguments are a clean usage error (exit 2), never a backtrace or a
+# silently clamped run.
+begin
+  parser.parse!
+  raise OptionParser::InvalidArgument, "unexpected argument(s): #{ARGV.join(' ')}" unless ARGV.empty?
+
+  { replicates: 1, first_seed: 0, workers: 1, repeats: 1, seconds: 1, fps: 1, tpf: 1, ticks: 1, frames: 1 }.each do |key, min|
+    raise OptionParser::InvalidArgument, "--#{key == :tpf ? 'ticks-per-frame' : key.to_s.tr('_', '-')} must be >= #{min} (got #{opts[key]})" if opts[key] && opts[key] < min
+  end
+rescue OptionParser::ParseError => e
+  warn "yarv_brain: #{e.message}\n#{parser.banner}\n(see --help)"
+  exit 2
+end
 
 FileUtils.mkdir_p(opts[:out])
 
