@@ -19,6 +19,10 @@ module Yarvpilled
   #   [:if, cond, a, b]        (cond ? a : b)
   #   cond: [:cmp, sym, a, b]  < > ==
   class Genome
+    # Raised for any tree outside the genome grammar. Validation happens before
+    # anything is rendered or compiled, so a bad genome never reaches YARV.
+    class InvalidGenome < ArgumentError; end
+
     SENSORS = %i[fa fl fr en cr ag].freeze
     LOCALS = %i[t0 t1 t2 t3].freeze
     OPS = %i[+ - ^ | &].freeze
@@ -26,6 +30,9 @@ module Yarvpilled
     MAX_STMTS = 4
     MAX_DEPTH = 4
     PARAMS = "fa, fl, fr, en, cr, ag"
+    INT_LIMIT = 1 << 31   # |literal| bound (dream constants are small class/method counts)
+    NODE_LIMIT = 512      # total nodes per genome
+    DEPTH_LIMIT = 48
 
     # Hand-written ancestor: graze when food is ahead, otherwise steer toward
     # the richer side. Everything else evolves from here.
@@ -43,11 +50,62 @@ module Yarvpilled
     end
 
     def initialize(stmts, ret, dream: nil)
+      self.class.validate!(stmts, ret)
       @stmts = self.class.deep_freeze(stmts.map(&:dup))
       @ret = self.class.deep_freeze(ret)
       @dream = dream
       @source = render
       compile!
+    end
+
+    # Strict grammar check. Every literal, symbol and shape is whitelisted, so
+    # rendering can never inject code, divide by zero, or reference an
+    # undefined local.
+    def self.validate!(stmts, ret)
+      raise InvalidGenome, "stmts must be an Array" unless stmts.is_a?(Array)
+      raise InvalidGenome, "too many statements (#{stmts.size} > #{MAX_STMTS})" if stmts.size > MAX_STMTS
+
+      count = [0]
+      defined = []
+      stmts.each do |st|
+        unless st.is_a?(Array) && st.size == 3 && st[0] == :let && LOCALS.include?(st[1]) && !defined.include?(st[1])
+          raise InvalidGenome, "bad statement #{st.inspect[0, 80]}"
+        end
+
+        check_expr(st[2], SENSORS + defined, 0, count)
+        defined << st[1]
+      end
+      check_expr(ret, SENSORS + defined, 0, count)
+      true
+    end
+
+    def self.check_expr(e, vars, depth, count)
+      raise InvalidGenome, "genome too deep" if depth > DEPTH_LIMIT
+      raise InvalidGenome, "genome too large" if (count[0] += 1) > NODE_LIMIT
+      raise InvalidGenome, "node must be an Array, got #{e.class}" unless e.is_a?(Array) && !e.empty?
+
+      int = ->(v, lo, hi) { v.is_a?(Integer) && v >= lo && v <= hi }
+      sub = ->(x) { check_expr(x, vars, depth + 1, count) }
+      ok =
+        case e[0]
+        when :n then e.size == 2 && int.(e[1], -INT_LIMIT, INT_LIMIT)
+        when :v then e.size == 2 && vars.include?(e[1])
+        when :op then e.size == 4 && OPS.include?(e[1]) && sub.(e[2]) && sub.(e[3])
+        when :mul, :max, :min then e.size == 3 && sub.(e[1]) && sub.(e[2])
+        when :mod then e.size == 3 && sub.(e[1]) && int.(e[2], 1, 4096)
+        when :shr then e.size == 3 && sub.(e[1]) && int.(e[2], 0, 62)
+        when :if then e.size == 4 && check_cond(e[1], vars, depth + 1, count) && sub.(e[2]) && sub.(e[3])
+        else false
+        end
+      raise InvalidGenome, "bad node #{e.inspect[0, 80]}" unless ok
+
+      true
+    end
+
+    def self.check_cond(c, vars, depth, count)
+      raise InvalidGenome, "bad condition #{c.inspect[0, 80]}" unless c.is_a?(Array) && c.size == 4 && c[0] == :cmp && CMPS.include?(c[1])
+
+      check_expr(c[2], vars, depth + 1, count) && check_expr(c[3], vars, depth + 1, count)
     end
 
     # Ruby source of the brain. Real code, compiled by YARV.

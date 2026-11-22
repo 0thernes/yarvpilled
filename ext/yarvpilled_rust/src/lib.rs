@@ -49,10 +49,55 @@ pub struct World {
     dbuf: *mut i32,
 }
 
-extern "C" {
-    // The cos/sin tables are shared with C so all backends use identical bits.
-    static yp_cos_t: [f64; 64];
-    static yp_sin_t: [f64; 64];
+mod trig_table;
+
+/// Direction tables from literal IEEE-754 bits (same bits as the C and Ruby tables).
+const fn table(bits: &[u64; 64]) -> [f64; 64] {
+    let mut out = [0.0; 64];
+    let mut k = 0;
+    while k < 64 {
+        out[k] = f64::from_bits(bits[k]);
+        k += 1;
+    }
+    out
+}
+static COS_T: [f64; 64] = table(&trig_table::COS_BITS);
+static SIN_T: [f64; 64] = table(&trig_table::SIN_BITS);
+
+// ---- Small pure pieces of the step, shared by the kernel and the Kani proofs ----
+
+/// Food regrowth for one cell: returns (food', facc').
+#[inline(always)]
+pub(crate) fn regrow(food: u8, facc: u8, fert: u8) -> (u8, u8) {
+    let acc = facc as i32 + fert as i32;
+    let f = food as i32 + (acc >> 8);
+    (f.min(FOOD_MAX) as u8, (acc & 255) as u8)
+}
+
+/// Eating from one cell: returns (food', take). Grazing (action 0) bites 9, moving bites 4.
+#[inline(always)]
+pub(crate) fn eat(food: u8, action: i32) -> (u8, i32) {
+    let bite = if action == 0 { 9 } else { 4 };
+    let take = (food as i32).min(bite);
+    (food - take as u8, take)
+}
+
+/// Energy after eating `take` and paying metabolism (computed in i64: no i32 overflow for any cost).
+#[inline(always)]
+pub(crate) fn metabolize(energy: i64, take: i32, cost: i32, action: i32) -> i64 {
+    energy + (take + take / 2) as i64 - (3 + cost as i64 + if action == 3 { 3 } else { 0 })
+}
+
+/// Toroidal grid neighbour index: (g + o + n) % n for g in [0, n), o in {-1, 0, 1}.
+#[inline(always)]
+pub(crate) fn grid_wrap(g: i32, o: i32, n: i32) -> i32 {
+    (g + o + n) % n
+}
+
+/// Energy sensor: energy / 4 clamped to [0, 255].
+#[inline(always)]
+pub(crate) fn sense_energy(e: i64) -> i32 {
+    (e / 4).clamp(0, 255) as i32
 }
 
 /// Borrowed slice views of the C-owned buffers for one kernel call.
@@ -81,7 +126,7 @@ struct V<'a> {
     gnext: &'a mut [i32],
 }
 
-unsafe fn view<'a>(w: &'a mut World) -> V<'a> {
+unsafe fn view(w: &mut World) -> V<'_> {
     use std::slice::from_raw_parts_mut as sm;
     let cap = w.cap as usize;
     let nf = (w.fw * w.fh) as usize;
@@ -169,7 +214,7 @@ pub unsafe extern "C" fn yp_rust_sense(wp: *mut World, out: *mut i32) -> i32 {
     let w = &mut *wp;
     let mut v = view(w);
     let out = std::slice::from_raw_parts_mut(out, v.x.len() * SENSORS);
-    let (cos_t, sin_t) = (&yp_cos_t, &yp_sin_t);
+    let (cos_t, sin_t) = (&COS_T, &SIN_T);
     build_grid(&mut v);
     let r2 = CROWD_R * CROWD_R;
     let gcell = v.gcell as f64;
@@ -188,14 +233,14 @@ pub unsafe extern "C" fn yp_rust_sense(wp: *mut World, out: *mut i32) -> i32 {
         o[0] = v.food[food_index(&v, px + cos_t[h] * 10.0, py + sin_t[h] * 10.0)] as i32;
         o[1] = v.food[food_index(&v, px + cos_t[hl] * 10.0, py + sin_t[hl] * 10.0)] as i32;
         o[2] = v.food[food_index(&v, px + cos_t[hr] * 10.0, py + sin_t[hr] * 10.0)] as i32;
-        o[3] = (v.energy[i] / 4).clamp(0, 255) as i32;
+        o[3] = sense_energy(v.energy[i]);
         let gx = (px / gcell) as i32;
         let gy = (py / gcell) as i32;
         let mut cr = 0;
         for oy in -1..=1 {
             for ox in -1..=1 {
-                let cx = (gx + ox + v.gw) % v.gw;
-                let cy = (gy + oy + v.gh) % v.gh;
+                let cx = grid_wrap(gx, ox, v.gw);
+                let cy = grid_wrap(gy, oy, v.gh);
                 let mut j = v.ghead[(cy * v.gw + cx) as usize];
                 while j >= 0 {
                     let ju = j as usize;
@@ -217,6 +262,7 @@ pub unsafe extern "C" fn yp_rust_sense(wp: *mut World, out: *mut i32) -> i32 {
 }
 
 #[no_mangle]
+#[allow(clippy::needless_range_loop)] // index-parallel arrays, mirrors kernel_c.c line for line
 pub unsafe extern "C" fn yp_rust_act(
     wp: *mut World,
     actions: *const i32,
@@ -234,14 +280,11 @@ pub unsafe extern "C" fn yp_rust_act(
         let actions = std::slice::from_raw_parts(actions, alen.max(0) as usize);
         let births = std::slice::from_raw_parts_mut(births, v.x.len());
         let deaths = std::slice::from_raw_parts_mut(deaths, v.x.len());
-        let (cos_t, sin_t) = (&yp_cos_t, &yp_sin_t);
+        let (cos_t, sin_t) = (&COS_T, &SIN_T);
         let (mut b, mut d) = (0usize, 0usize);
 
         for c in 0..v.food.len() {
-            let acc = v.facc[c] as i32 + v.fert[c] as i32;
-            let f = v.food[c] as i32 + (acc >> 8);
-            v.facc[c] = (acc & 255) as u8;
-            v.food[c] = f.min(FOOD_MAX) as u8;
+            (v.food[c], v.facc[c]) = regrow(v.food[c], v.facc[c], v.fert[c]);
         }
         for i in 0..v.used {
             if v.alive[i] == 0 {
@@ -265,12 +308,10 @@ pub unsafe extern "C" fn yp_rust_act(
             v.x[i] = wrapd(v.x[i] + cos_t[h] * speed, v.w);
             v.y[i] = wrapd(v.y[i] + sin_t[h] * speed, v.h);
             let fc = food_index(&v, v.x[i], v.y[i]);
-            let bite = if a == 0 { 9 } else { 4 };
-            let take = (v.food[fc] as i32).min(bite);
-            v.food[fc] -= take as u8;
+            let take;
+            (v.food[fc], take) = eat(v.food[fc], a);
             eaten += take as i64;
-            v.energy[i] += (take + take / 2) as i64;
-            v.energy[i] -= (3 + v.cost[i] + if a == 3 { 3 } else { 0 }) as i64;
+            v.energy[i] = metabolize(v.energy[i], take, v.cost[i], a);
             v.age[i] += 1;
         }
         build_grid(&mut v);
@@ -284,8 +325,8 @@ pub unsafe extern "C" fn yp_rust_act(
             let gy = (v.y[i] / gcell) as i32;
             for oy in -1..=1 {
                 for ox in -1..=1 {
-                    let cx = (gx + ox + v.gw) % v.gw;
-                    let cy = (gy + oy + v.gh) % v.gh;
+                    let cx = grid_wrap(gx, ox, v.gw);
+                    let cy = grid_wrap(gy, oy, v.gh);
                     let mut j = v.ghead[(cy * v.gw + cx) as usize];
                     while j >= 0 {
                         let ju = j as usize;
@@ -330,3 +371,6 @@ pub unsafe extern "C" fn yp_rust_act(
     w.deaths_total += deaths_total;
     w.ticks += 1;
 }
+
+#[cfg(any(kani, feature = "proof-check"))]
+mod proofs;

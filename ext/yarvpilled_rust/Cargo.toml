@@ -6,10 +6,17 @@ description = "Rust world-loop kernel for YARVPILLED (C ABI, linked into the rub
 license = "MIT"
 
 [lib]
-crate-type = ["staticlib"]
+crate-type = ["staticlib", "rlib"]
 path = "src/lib.rs"
 
 [dependencies]
+
+[features]
+# Runs the Kani proof harnesses as randomized tests on stable Rust (cargo test --features proof-check).
+proof-check = []
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(kani)"] }
 
 [profile.release]
 opt-level = 3

@@ -118,7 +118,7 @@ void yp_c_act(World *w, const int32_t *actions, int64_t alen, int64_t thresh,
     w->food[fc] -= take;
     w->eaten_total += take;
     w->energy[i] += take + take / 2;
-    w->energy[i] -= 3 + w->cost[i] + (a == 3 ? 3 : 0);
+    w->energy[i] -= (int64_t)3 + w->cost[i] + (a == 3 ? 3 : 0); /* 64-bit: no int overflow for any cost */
     w->age[i]++;
   }
   yp_build_grid(w);
