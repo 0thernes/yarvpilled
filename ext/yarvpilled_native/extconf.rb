@@ -5,8 +5,10 @@ require "mkmf"
 # ruby.h C API + libm, plus two optional world-loop backends:
 #   * hand-written x86-64 asm (crowd_x86_64.S) on x86_64 Linux/BSD
 #   * a Rust staticlib (ext/yarvpilled_rust) if YP_RUST_LIB points at it
+# -ffp-contract=off: no FMA contraction (clang on arm64 contracts by default),
+# so every backend keeps the exact IEEE-754 operation order of world_ruby.rb.
 have_library("m", "cos")
-$CFLAGS << " -O3 -std=c99 -Wall -Wextra -Wno-unused-parameter"
+$CFLAGS << " -O3 -std=gnu99 -ffp-contract=off -Wall -Wextra -Wno-unused-parameter"
 
 srcdir = File.expand_path(__dir__)
 $srcs = %w[native.c world.c kernel_c.c raster.c].map { File.join(srcdir, _1) }

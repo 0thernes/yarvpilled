@@ -1,0 +1,21 @@
+name: Feature request
+description: A new VM-internals mechanic, backend, visual, or experiment.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What should it do?
+    validations:
+      required: true
+  - type: textarea
+    id: real
+    attributes:
+      label: What is real about it?
+      description: >
+        This project keeps a strict real-vs-metaphor line. Which actual CRuby / YARV
+        mechanism would this use, and what (if anything) would be decoration?
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

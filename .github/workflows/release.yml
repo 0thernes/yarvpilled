@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tag matches VERSION and Yarvpilled::VERSION
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          file="$(tr -d '[:space:]' < VERSION)"
+          const="$(ruby -Ilib -e 'require "yarvpilled/version"; print Yarvpilled::VERSION')"
+          echo "tag=$tag VERSION=$file constant=$const"
+          test "$tag" = "$file" && test "$tag" = "$const"
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          ruby -e '
+            v = ENV.fetch("GITHUB_REF_NAME").delete_prefix("v")
+            body = File.read("CHANGELOG.md")[/^## \[#{Regexp.escape(v)}\].*?\n(.*?)(?=^## \[|^\[)/m, 1]
+            abort "no CHANGELOG entry for #{v}" unless body
+            File.write("release-notes.md", body.strip + "\n")
+          '
+          cat release-notes.md
+      - name: Create GitHub Release (skipped if it already exists)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME already exists; leaving it untouched."
+          else
+            gh release create "$GITHUB_REF_NAME" --title "yarvpilled $GITHUB_REF_NAME" \
+              --notes-file release-notes.md --verify-tag
+          fi

@@ -1,25 +1,64 @@
 name: CI
+
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  linux:
+    name: ubuntu / Ruby ${{ matrix.ruby }} (C + asm + Rust)
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         ruby: ["3.3", "3.4"]
+    env:
+      YP_STRICT: "1" # a failed native build fails CI instead of falling back
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
       - uses: dtolnay/rust-toolchain@stable
-      - name: Compile C extension (+asm, +Rust kernel)
+      - name: Compile C extension (+ x86-64 asm, + Rust kernel)
         run: rake compile
+      - name: Backends
+        run: ruby yarv_brain.rb --version
       - name: Tests (interpreter)
         run: rake test
       - name: Tests (YJIT)
         run: RUBYOPT=--yjit rake test
-      - name: Smoke run
-        run: ruby --yjit yarv_brain.rb --headless --ticks=300 | tail -1
+      - name: Tests (pure-Ruby fallback)
+        run: YARVPILLED_PURE=1 rake test
+      - name: Smoke run (headless, 300 ticks)
+        run: rake smoke
+
+  macos:
+    name: macOS / Ruby 3.4 (C + Rust, arm64)
+    runs-on: macos-latest
+    env:
+      YP_STRICT: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Compile C extension (+ Rust kernel; asm is x86-64 only)
+        run: rake compile
+      - name: Backends
+        run: ruby yarv_brain.rb --version
+      - name: Tests
+        run: rake test
+      - name: Smoke run (headless, 300 ticks)
+        run: rake smoke

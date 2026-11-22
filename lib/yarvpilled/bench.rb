@@ -121,7 +121,9 @@ module Yarvpilled
 
     def run_all(ticks:, seed:, out_dir:, repeats: 5)
       root = File.expand_path("../..", __dir__)
-      tiers = TIERS.select { |_, _, w| World.available?(w.to_sym) }
+      yjit = system(RbConfig.ruby, "--yjit", "-e", "exit(defined?(RubyVM::YJIT) && RubyVM::YJIT.enabled? ? 0 : 1)",
+                    err: File::NULL)
+      tiers = TIERS.select { |_, flags, w| World.available?(w.to_sym) && (yjit || !flags.include?("--yjit")) }
       runs = tiers.to_h do |label, flags, world|
         res = Array.new(repeats) do |k|
           $stderr.puts "  #{label}: run #{k + 1}/#{repeats}"

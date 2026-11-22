@@ -1,8 +1,26 @@
+# Build products
 /tmp/
-/out/
+/ext/yarvpilled_rust/target/
+*.o
 *.so
 *.bundle
-*.o
+*.dll
+*.dylib
+*.a
 Makefile
 mkmf.log
-/ext/yarvpilled_rust/target/
+extconf.h
+
+# Generated output (videos, logs, benchmark runs). Curated copies live in docs/.
+/out/
+*.mp4
+*.log
+
+# Tooling / OS
+/.bundle/
+/vendor/
+/coverage/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

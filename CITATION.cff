@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this software or its benchmark/control results, please cite it as below."
+title: "yarvpilled: an A-Life world where every brain is a live YARV instruction sequence"
+type: software
+authors:
+  - alias: "0thernes"
+    email: "0_0@0thernes.art"
+version: "0.2.0"
+date-released: "2026-11-22"
+license: MIT
+repository-code: "https://github.com/0thernes/yarvpilled"
+url: "https://github.com/0thernes/yarvpilled"
+abstract: >-
+  A zero-model artificial-life simulation in CRuby. Each creature's brain is a Ruby method
+  compiled with RubyVM::InstructionSequence and executed by YARV; genomes mutate on
+  reproduction, and selection hot-swaps live methods via TracePoint. The world loop has
+  bit-identical pure-Ruby, C, Rust and hand-written x86-64 assembly backends, with a
+  repeated-run benchmark and a selection-vs-random-drift control experiment.
+keywords:
+  - ruby
+  - yarv
+  - artificial-life
+  - genetic-programming
+  - yjit
+  - c-extension
+  - rust
+  - assembly

@@ -6,7 +6,7 @@
 #   ruby --yjit yarv_brain.rb --video            # render out/yarvpilled.mp4 (+ stills, gif, run_log)
 #   ruby --yjit yarv_brain.rb --tui              # live ANSI truecolor terminal mode
 #   ruby --yjit yarv_brain.rb --headless         # run and print stats
-#   ruby yarv_brain.rb --bench                   # 3-tier benchmark (spawns tier processes)
+#   ruby yarv_brain.rb --bench                   # Ruby/YJIT/C/Rust/asm benchmark (spawns tier processes)
 #   ruby server.rb                               # live browser mode (SSE)
 
 $LOAD_PATH.unshift File.join(__dir__, "lib")
@@ -23,7 +23,7 @@ OptionParser.new do |o|
   o.on("--video", "render MP4 + GIF + stills + run log") { opts[:mode] = :video }
   o.on("--tui", "live terminal mode") { opts[:mode] = :tui }
   o.on("--headless", "simulate and print stats (default)") { opts[:mode] = :headless }
-  o.on("--bench", "run the 3-tier benchmark") { opts[:mode] = :bench }
+  o.on("--bench", "benchmark every available tier") { opts[:mode] = :bench }
   o.on("--bench-tier", "(internal) run one tier") { opts[:mode] = :bench_tier }
   o.on("--control", "selection vs drift control experiment") { opts[:mode] = :control }
   o.on("--replicates=N", Integer, "control: seeds per condition (default 8)") { opts[:replicates] = _1 }
@@ -36,6 +36,11 @@ OptionParser.new do |o|
   o.on("--ticks=N", Integer, "headless/bench ticks") { opts[:ticks] = _1 }
   o.on("--frames=N", Integer, "TUI: stop after N frames") { opts[:frames] = _1 }
   o.on("--out=DIR") { opts[:out] = _1 }
+  o.on("-v", "--version", "print version and available world backends") do
+    kinds = Yarvpilled::World::KINDS.select { Yarvpilled::World.available?(_1) }
+    puts "yarvpilled #{Yarvpilled::VERSION} (ruby #{RUBY_VERSION}, worlds: #{kinds.join(', ')})"
+    exit
+  end
 end.parse!
 
 FileUtils.mkdir_p(opts[:out])

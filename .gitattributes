@@ -1,0 +1,19 @@
+# Normalise text to LF in the repo; Windows checkouts get native line endings.
+* text=auto eol=lf
+
+# Binaries
+*.png  binary
+*.gif  binary
+*.jpg  binary
+*.mp4  binary
+*.bin  binary
+*.so   binary
+*.dll  binary
+
+# Linguist
+*.S                         linguist-language=Assembly
+lib/yarvpilled/data/*       linguist-generated
+docs/*.json                 linguist-generated
+docs/run_log.txt            linguist-generated
+ext/yarvpilled_rust/Cargo.lock linguist-generated
+docs/**                     linguist-documentation

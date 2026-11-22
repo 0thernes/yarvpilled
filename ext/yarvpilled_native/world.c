@@ -12,7 +12,9 @@
  * genome, a RubyVM::InstructionSequence executed by YARV.
  * lib/yarvpilled/world_ruby.rb is the bit-identical pure-Ruby port.
  */
+#if defined(__linux__) && !defined(_POSIX_C_SOURCE)
 #define _POSIX_C_SOURCE 199309L
+#endif
 #include <ruby.h>
 #include <time.h>
 #include <math.h>

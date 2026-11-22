@@ -4,8 +4,13 @@ require_relative "world_ruby"
 
 module Yarvpilled
   # Loads the ruby.h C extension if it was compiled (rake compile).
+  # If it is missing or fails to load (e.g. no compiler on Windows), every
+  # component falls back to its bit-identical pure-Ruby twin.
+  # Set YARVPILLED_PURE=1 to force the pure-Ruby path.
   module Native
     begin
+      raise LoadError, "YARVPILLED_PURE set" if ENV["YARVPILLED_PURE"].to_s =~ /\A(1|true|yes)\z/i
+
       require_relative "yarvpilled_native"
       AVAILABLE = true
     rescue LoadError

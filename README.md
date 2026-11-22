@@ -1,43 +1,158 @@
-# YARVPILLED // pure ISeq cognition // zero models
+<div align="center">
 
-A living A-Life world where **every creature's brain is real YARV bytecode**.
-No neural nets, no ML libraries, no models: just CRuby. Creatures move, eat,
-reproduce and die in real time. Each one thinks by executing a
-`RubyVM::InstructionSequence`. That bytecode mutates when a creature
-reproduces, and natural selection hot-swaps live methods through `TracePoint`.
-Each creature's body (color, size, shape, glow) is computed from its own
-opcode histogram.
+# YARVPILLED
 
-![YARVPILLED preview](docs/yarvpilled.gif)
+**An A-Life world where every creature's brain is a live YARV instruction sequence.**
+Zero models. Pure CRuby. World loop in Ruby, C, Rust or hand-written x86-64 asm, all bit-identical.
+
+[![CI](https://github.com/0thernes/yarvpilled/actions/workflows/ci.yml/badge.svg)](https://github.com/0thernes/yarvpilled/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/0thernes/yarvpilled?sort=semver)](https://github.com/0thernes/yarvpilled/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Ruby](https://img.shields.io/badge/ruby-3.3%20%7C%203.4-CC342D?logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
+[![YJIT](https://img.shields.io/badge/YJIT-ready-CC342D)](https://docs.ruby-lang.org/en/master/yjit/yjit_md.html)
+[![Gems](https://img.shields.io/badge/runtime%20gems-0-brightgreen)](docs/adr/0003-stdlib-only.md)
+
+![YARVPILLED: a live run](docs/yarvpilled.gif)
+
+</div>
+
+Creatures move, eat, reproduce and die in real time. Each one thinks by executing a
+`RubyVM::InstructionSequence` compiled from its genome. The genome's bytecode mutates when a
+creature reproduces, natural selection hot-swaps live methods through `TracePoint`, and each
+creature's body (color, size, shape, glow) is computed from its own opcode histogram.
 
 | GC.compact "enlightenment" | TracePoint rewrite mid-call | terminal mode |
 |---|---|---|
 | ![](docs/still_enlightenment.png) | ![](docs/still_rewrite.png) | ![](docs/tui.png) |
+| **browser mode (SSE + canvas)** | **the living world** | **end of a 40 s run** |
+| ![](docs/browser.png) | ![](docs/still_world.png) | ![](docs/still_final.png) |
 
-## Run it
+## Contents
 
-Requires CRuby 3.3+ (3.4 + YJIT recommended), a C compiler for the optional
-extension, and ffmpeg for video. Only the stdlib is used, with no gems.
+[Results](#results-at-a-glance) · [Quickstart](#quickstart) · [Usage](#usage) ·
+[Architecture](#architecture) · [Real vs. metaphor](#whats-genuinely-real-vs-metaphor) ·
+[Benchmarks](#benchmarks-ruby-vs-yjit-vs-c-vs-rust-vs-asm) · [Control experiment](#control-selection-vs-random-drift) ·
+[Limitations](#limitations) · [Docs](#documentation) · [Citation](#citation) · [License](#license)
+
+## Results at a glance
+
+Speed, as median of 5 fresh processes (seed 11, 2000 ticks, identical checksum in all 30 runs):
+
+| tier | creatures/sec | vs pure Ruby | world loop only (updates/sec) | share of tick in YARV brains |
+|---|---:|---:|---:|---:|
+| pure Ruby interpreter | 79,543 | 1.00x | 145,500 | 17% |
+| pure Ruby + YJIT | 147,949 | 1.86x | 357,931 | 31% |
+| C + YJIT | 278,971 | 3.51x | 3,202,418 | 72% |
+| Rust + YJIT | 270,977 | 3.41x | 2,706,854 | 70% |
+| hand-written asm + YJIT | 275,521 | 3.46x | 2,884,147 | 72% |
+
+Evolution, from 8 seeds per arm, measured against a random-drift null model:
+
+| metric | selection | drift | Holm-adjusted p |
+|---|---:|---:|---:|
+| foraging fitness (common-garden assay) | 5.009 | 4.417 | 0.038 |
+| survival in assay | 0.708 | 0.512 | 0.009 |
+| mean bytecode length (words) | 32.5 | 54.2 | 0.0009 |
+
+**Verdict.** C, Rust and hand-written asm land within run-to-run noise of each other (about
+3.5x pure Ruby end to end, about 20x on the world loop). Once the world is native, about 70% of
+each tick is YARV running genome bytecode, so the brains set the speed, not the language of the
+world loop. Selection measurably beats drift.
+
+## Quickstart
+
+Requirements: **CRuby 3.3+** (3.4 with YJIT recommended). Optional: a C compiler for the
+native world (falls back to pure Ruby without one), **cargo** for the Rust backend, and
+**ffmpeg** for `--video`. There are no gems to install.
+
+### Linux
 
 ```sh
-rake compile                              # build ext/yarvpilled_native (ruby.h) + asm + Rust kernel (if cargo)
-rake test                                 # minitest suite
+sudo apt install ruby-full build-essential ffmpeg       # or your distro's equivalents / a Ruby manager
+curl https://sh.rustup.rs -sSf | sh                     # optional: Rust backend
+git clone https://github.com/0thernes/yarvpilled && cd yarvpilled
+rake compile && rake test
+ruby --yjit yarv_brain.rb --tui
+```
 
+### macOS
+
+```sh
+xcode-select --install                                  # clang + make
+brew install ruby ffmpeg rust                           # Homebrew Ruby (3.4) is YJIT-enabled
+git clone https://github.com/0thernes/yarvpilled && cd yarvpilled
+rake compile && rake test                               # :asm is x86-64 Linux only; on arm64 it uses the C scan
+ruby --yjit yarv_brain.rb --tui
+```
+
+### Windows (RubyInstaller + DevKit)
+
+```powershell
+winget install RubyInstallerTeam.RubyWithDevKit.3.4     # or download "Ruby+Devkit 3.4" from rubyinstaller.org
+ridk install                                            # choose option 3 (MSYS2 + MINGW toolchain)
+git clone https://github.com/0thernes/yarvpilled; cd yarvpilled
+rake compile                                            # builds the C world via DevKit, or falls back to pure Ruby
+rake test
+ruby yarv_brain.rb --tui                                # use Windows Terminal for truecolor
+```
+
+On Windows, `rake compile` enables the DevKit toolchain itself and skips the Rust and asm
+backends. If the C build fails for any reason, it prints a warning and everything runs on the
+bit-identical pure-Ruby world. You can force that path anywhere with `YARVPILLED_PURE=1`.
+`ruby yarv_brain.rb --version` shows which backends are available.
+
+## Usage
+
+```sh
 ruby --yjit yarv_brain.rb --tui           # live ANSI truecolor terminal (Ctrl-C to quit)
 ruby --yjit server.rb                     # live browser: http://localhost:4567/  (SSE at /events)
 ruby --yjit yarv_brain.rb --video         # out/yarvpilled.mp4 + .gif + still_*.png + run_log.txt
 ruby --yjit yarv_brain.rb --headless      # simulate, print the event log + stats
-ruby yarv_brain.rb --bench --ticks=2000   # Ruby/YJIT/C/Rust/asm benchmark -> out/bench.md
-ruby --yjit yarv_brain.rb --control       # selection vs drift control -> out/control.md
+ruby yarv_brain.rb --bench                # benchmark every available tier -> out/bench.md
+ruby --yjit yarv_brain.rb --control       # selection vs drift experiment -> out/control.md
+ruby yarv_brain.rb --version              # version + available world backends
 ```
 
-Options: `--world=native|c|asm|rust|ruby`, `--seed=N`, `--seconds=N`, `--fps=N`,
-`--ticks-per-frame=N`, `--frames=N` (TUI), `--port=N --tps=N` (server).
-If the extension isn't compiled, everything falls back to pure Ruby.
+Options: `--world=native|c|asm|rust|ruby`, `--seed=N`, `--ticks=N`, `--seconds=N`, `--fps=N`,
+`--ticks-per-frame=N`, `--frames=N` (TUI), `--repeats=N` (bench), `--replicates=N` (control),
+`--out=DIR`. Server: `--port=N --bind=ADDR --tps=N --world=KIND`. It binds to 127.0.0.1 by default.
 
-The video renderer outpaces real time on this box: 1260 frames of 1280x720
-(42 s at 30 fps) render in about 34 s while the simulation runs. So the MP4
-is a recording of a live run, not an offline composite.
+### Rake tasks
+
+| task | what it does |
+|---|---|
+| `rake compile` | Builds the ruby.h C extension, plus x86-64 asm on Linux/BSD and the Rust kernel if cargo is present. Falls back to pure Ruby on failure (`YP_STRICT=1` makes failure fatal; `YP_NO_RUST=1` skips Rust). |
+| `rake test` | Runs the minitest suite. Native-only tests are skipped when the extension is absent. |
+| `rake smoke` | Prints `--version`, then does a 300-tick headless run. |
+| `rake bench` | Multi-tier benchmark (`REPEATS=5 TICKS=2000`), written to `out/bench.md` and `.json`. |
+| `rake control` | Selection vs drift (`REPLICATES=8 TICKS=4000`), written to `out/control.md` and `.json`. |
+| `rake video` | Renders the MP4, GIF, stills and run log (needs ffmpeg). |
+| `rake clean` | Removes `tmp/`, the compiled extension and the Rust `target/`. |
+| `rake` | Runs `compile`, then `test`. |
+
+The video renderer outpaces real time on a modern CPU: 1260 frames of 1280x720 (42 s at 30 fps)
+render in about 34 s while the simulation runs. So the MP4 is a recording of a live run, not an
+offline composite.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  G["genome tree"] -->|"ISeq.compile, to_binary, load_from_binary"| B["Class.new(Mind)#think"]
+  B -->|"Fiber attention: think(fa, fl, fr, en, cr, ag)"| A["actions"]
+  W["world kernel: Ruby | C | asm | Rust"] -->|"sense: food, energy, crowding, age"| B
+  A -->|"act: move, eat, metabolize, collide, die"| W
+  W -->|"births"| M["mutate + recompile = new species"]
+  M --> G
+  E["TracePoint, Ractor, GC.compact, prepend, Refinement"] -.-> B
+```
+
+**Division of labor.** The world kernels (Ruby / C / Rust / asm) only move bodies: spatial
+hash grid, resource regrowth, movement, eating, metabolism, collision, death and corpse
+nutrients. They never decide anything. Decisions always come from YARV running genome ISeqs.
+All four backends use the same integer and IEEE-754 operation order (no FMA), and
+`test/test_world_equivalence.rb` asserts they stay bit-identical over 300 ticks with births.
+Details: [docs/architecture.md](docs/architecture.md) and the [ADRs](docs/adr/README.md).
 
 ## What's genuinely real vs. metaphor
 
@@ -60,41 +175,9 @@ is a recording of a live run, not an offline composite.
 | **Gauges** | `GC.stat`, `ObjectSpace.count_objects` (T_IMEMO = ISeqs and friends), `RubyVM::YJIT.runtime_stats`. **Real.** |
 | "Consciousness", "enlightenment", "hive-mind" | **Metaphor.** It's a genetic-programming A-Life sim whose genome happens to be YARV bytecode. |
 
-## Architecture
+## Benchmarks: Ruby vs YJIT vs C vs Rust vs asm
 
-```
-yarv_brain.rb            CLI: --video / --tui / --headless / --bench / --control
-server.rb                stdlib TCPServer + SSE; public/index.html canvas renderer
-lib/yarvpilled/
-  genome.rb              genome tree -> Ruby source -> ISeq -> to_binary -> brain; mutation; traits
-  simulation.rb          tick loop, Fiber attention, births/deaths, TracePoint, Ractors, GC events
-  guardrails.rb          Refinement guardrail, Instinct (prepend), Mind base class
-  experts.rb             Ractor expert pool
-  world.rb               picks the C or pure-Ruby world
-  world_ruby.rb          pure-Ruby world, bit-identical to world.c
-  renderer.rb, gfx.rb    1280x720 frame renderer, Canvas, PNG encoder, glyph atlas
-  raster_ruby.rb         pure-Ruby fallback rasterizer
-  telemetry.rb           JSON view of live state (SSE)
-  tui.rb                 ANSI truecolor terminal mode
-  video.rb               raw RGB24 -> ffmpeg (H.264, yuv420p), stills, GIF
-  bench.rb               multi-tier benchmark (median/spread over fresh processes)
-  control.rb             selection vs drift experiment, common-garden assay, permutation test
-ext/yarvpilled_native/   world.c (Ruby glue), kernel_c.c (C kernel), crowd_x86_64.S (asm), raster.c
-ext/yarvpilled_rust/     Rust world kernel (staticlib, C ABI)
-tools/gen_font.rb        regenerates the DejaVu Sans Mono glyph atlases via ffmpeg drawtext
-tools/ansi_to_png.rb     renders a captured TUI frame to PNG
-```
-
-**Division of labor.** The native kernels (C / Rust / asm) only move bodies: spatial hash grid,
-resource regrowth, movement, eating, metabolism, collision, death and corpse
-nutrients. It never decides anything. Decisions always come from YARV running
-genome ISeqs. `world_ruby.rb` and the Rust kernel are line-for-line ports that use the
-same integer and IEEE-754 operation order. `test_world_equivalence.rb`
-asserts that all four backends stay bit-identical over 300 ticks with births.
-
-## Benchmark: Ruby vs YJIT vs C vs Rust vs asm
-
-`ruby yarv_brain.rb --bench --ticks=2000 --repeats=5`. Each tier runs as a fresh
+`rake bench` (= `ruby yarv_brain.rb --bench --ticks=2000 --repeats=5`). Each tier runs as a fresh
 process, 5 times; cells are **median (min-max)**. The world loop has four
 interchangeable backends. All are bit-identical step by step
 (`test/test_world_equivalence.rb`) and all share the same Ruby glue:
@@ -152,7 +235,7 @@ over pure Ruby).
 
 ## Control: selection vs random drift
 
-`ruby --yjit yarv_brain.rb --control --replicates=8 --ticks=4000`. Without this
+`rake control` (= `ruby --yjit yarv_brain.rb --control --replicates=8 --ticks=4000`). Without this
 control, "evolution" could just be mutation noise. The null model keeps
 everything identical (same seeds, same mutation rate, brains still executed)
 except that genomes can't affect fitness: actions are randomized and
@@ -179,6 +262,24 @@ diversity (lower species and opcode entropy). All three hold after Holm
 correction. Caveat: n = 8 per arm, one assay arena, 4000 ticks (about 10
 generations).
 
+## Limitations
+
+- **Not a performance claim about languages in general.** The benchmark compares one small,
+  pointer-chasing kernel on one machine (8-core Intel Xeon, Linux, Ruby 3.4.7, gcc, rustc
+  1.85). Run-to-run spread is 10-15%, so differences under that are noise.
+- **The asm backend is x86-64 SysV only** (Linux/BSD). On macOS, arm64 and Windows, `:asm`
+  uses the C crowd scan. The Rust backend is not wired up on Windows.
+- **Windows is not covered by CI.** The pure-Ruby fallback is expected to work there, but
+  native builds under the RubyInstaller DevKit have not been tested.
+- **Runs with events on aren't bit-reproducible.** Ractor votes and GC events depend on
+  scheduling. Benchmarks and the control experiment turn events off, and those runs are
+  deterministic.
+- **The control experiment is small:** 8 replicates per arm, one assay arena, 4000 ticks
+  (about 10 generations).
+- **ISeq binaries are Ruby-version-specific.** They're never persisted across runs.
+- **It's a genetic-programming A-Life sim.** "Consciousness", "enlightenment" and "hive-mind"
+  are labels for the visuals (see the real-vs-metaphor table).
+
 ## Found along the way
 
 YJIT in Ruby 3.4.7 panicked (`x86_split: assertion failed: opnds.len() <=
@@ -187,6 +288,32 @@ functions with more than 5 arguments. The workaround: every many-argument
 entry point is registered as variadic (`argc, argv`). See the comment in
 `raster.c`.
 
+## Documentation
+
+- [docs/architecture.md](docs/architecture.md): tick loop, backends, fallbacks, file map
+- [docs/adr/](docs/adr/README.md): architecture decision records
+- [docs/bench.md](docs/bench.md) / [bench.json](docs/bench.json): full benchmark report
+- [docs/control.md](docs/control.md) / [control.json](docs/control.json): selection vs drift report
+- [docs/faq.md](docs/faq.md): FAQ
+- [docs/run_log.txt](docs/run_log.txt): log of the run shown in the GIF (TracePoint rewrites with before/after disasm)
+- [CHANGELOG.md](CHANGELOG.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [SECURITY.md](SECURITY.md) · [SUPPORT.md](SUPPORT.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+
+## Citation
+
+If you use this project or its numbers, please cite it. GitHub's "Cite this repository" button
+reads [CITATION.cff](CITATION.cff).
+
+```bibtex
+@software{yarvpilled_2026,
+  author  = {0thernes},
+  title   = {yarvpilled: an A-Life world where every brain is a live YARV instruction sequence},
+  year    = {2026},
+  version = {0.2.0},
+  url     = {https://github.com/0thernes/yarvpilled},
+  license = {MIT}
+}
+```
+
 ## License
 
-MIT. See [LICENSE](LICENSE).
+[MIT](LICENSE) © 2026 0thernes

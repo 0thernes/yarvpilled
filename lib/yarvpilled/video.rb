@@ -77,8 +77,8 @@ module Yarvpilled
       mp4 = File.join(@out, "yarvpilled.mp4")
       out = File.join(@out, "yarvpilled.gif")
       start = [@opts[:seconds] * 0.35, 0].max.round
-      filter = "fps=12,scale=640:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=160:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle"
-      system("ffmpeg", "-loglevel", "error", "-y", "-ss", start.to_s, "-t", "14", "-i", mp4, "-vf", filter, out, exception: true)
+      filter = "fps=10,scale=640:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle"
+      system("ffmpeg", "-loglevel", "error", "-y", "-ss", start.to_s, "-t", "10", "-i", mp4, "-vf", filter, out, exception: true)
     end
   end
 end

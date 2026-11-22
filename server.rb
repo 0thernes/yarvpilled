@@ -4,23 +4,25 @@
 # Live browser mode: one Simulation thread, a stdlib TCPServer, and a
 # Server-Sent Events stream of real VM telemetry rendered on a <canvas>.
 #
-#   ruby --yjit server.rb [--port=4567] [--tps=20]
+#   ruby --yjit server.rb [--port=4567] [--bind=127.0.0.1] [--tps=20]
+#   (binds to localhost by default; pass --bind=0.0.0.0 to expose it on your LAN)
 #   open http://localhost:4567/          (SSE at /events, one-shot JSON at /state.json)
 
 $LOAD_PATH.unshift File.join(__dir__, "lib")
 Warning[:experimental] = false
 require "socket"
 require "optparse"
+require "fileutils"
 require "yarvpilled"
 
-opts = { port: Integer(ENV.fetch("PORT", 4567)), bind: "0.0.0.0", tps: 20, seed: 11,
+opts = { port: Integer(ENV.fetch("PORT", 4567)), bind: ENV.fetch("BIND", "127.0.0.1"), tps: 20, seed: 11,
          world: Yarvpilled::Native::AVAILABLE ? :native : :ruby }
 OptionParser.new do |o|
   o.on("--port=N", Integer) { opts[:port] = _1 }
   o.on("--bind=ADDR") { opts[:bind] = _1 }
   o.on("--tps=N", Integer, "simulation ticks per second") { opts[:tps] = _1 }
   o.on("--seed=N", Integer) { opts[:seed] = _1 }
-  o.on("--world=KIND", %w[native ruby]) { opts[:world] = _1.to_sym }
+  o.on("--world=KIND", %w[native c asm rust ruby]) { opts[:world] = _1.to_sym }
 end.parse!
 
 module Yarvpilled
@@ -33,6 +35,7 @@ module Yarvpilled
       @lock = Mutex.new
       @latest = nil
       @latest_full = nil
+      FileUtils.mkdir_p(File.join(__dir__, "out"))
       @log = File.open(File.join(__dir__, "out", "server_log.txt"), "a")
       @sim = Simulation.new(seed: opts[:seed], world: opts[:world], log: @log)
     end

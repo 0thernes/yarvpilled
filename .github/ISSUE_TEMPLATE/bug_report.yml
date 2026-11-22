@@ -1,0 +1,44 @@
+name: Bug report
+description: Something crashes, renders wrong, or the backends disagree.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you ran, what you expected, what you got.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        rake compile
+        ruby --yjit yarv_brain.rb --headless --seed=11 --ticks=300
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: Output of `ruby yarv_brain.rb --version` and `ruby -v`
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      options: [Linux, macOS, Windows (RubyInstaller), Other]
+    validations:
+      required: true
+  - type: dropdown
+    id: world
+    attributes:
+      label: World backend
+      options: [native / c, asm, rust, ruby (pure Ruby), not sure]
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs (rake compile output, backtrace, run_log.txt excerpt)
+      render: text
