@@ -1,57 +1,38 @@
 /*
- * world.c -- the hot A-Life world loop for YARVPILLED, written against the
- * plain CRuby C API (ruby.h). Spatial hash grid, food/resource field,
- * movement, eating, metabolism, collision and death all happen here.
+ * world.c -- Ruby glue for the A-Life world loop (ruby.h C API only).
  *
- * What does NOT happen here: thinking. Every creature's decision is made by
- * its genome, a real RubyVM::InstructionSequence executed by YARV. Ruby asks
- * this file for sensor values (sense), runs the bytecode, and hands the
- * resulting actions back (act).
+ * The hot loop itself lives in a backend kernel that works on plain buffers:
+ *   :c     kernel_c.c                         (reference)
+ *   :asm   kernel_c.c + crowd_x86_64.S         (hand-written asm crowd scan)
+ *   :rust  ext/yarvpilled_rust (staticlib)     (whole sense/act kernel in Rust)
+ * This file converts Ruby Arrays <-> int32 buffers identically for every
+ * backend, so benchmark differences come from the kernels alone.
  *
- * lib/yarvpilled/world_ruby.rb is a line-for-line pure-Ruby port with the
- * identical arithmetic so the two tiers are bit-for-bit comparable
- * (test/test_world_equivalence.rb checks this).
+ * Thinking never happens here: every creature's decision comes from its
+ * genome, a RubyVM::InstructionSequence executed by YARV.
+ * lib/yarvpilled/world_ruby.rb is the bit-identical pure-Ruby port.
  */
+#define _POSIX_C_SOURCE 199309L
 #include <ruby.h>
+#include <time.h>
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
-
-#define NDIR 64
-#define SENSORS 6
-#define RADIUS 4.0
-#define CROWD_R 20.0
-#define MAX_AGE 900
-#define FOOD_MAX 255
-
-typedef struct {
-  int cap, used;               /* slots allocated / high-water mark */
-  double w, h;                 /* world size in world units */
-  double *x, *y;
-  int *heading, *age, *species, *cost, *last_action;
-  long *energy;
-  unsigned char *alive;
-  int fw, fh, fcell;           /* food grid */
-  unsigned char *food, *fert, *facc;
-  int gw, gh, gcell;           /* spatial hash */
-  int *ghead, *gnext;
-  long eaten_total, ticks, deaths_total;
-} World;
-
-static double COS_T[NDIR], SIN_T[NDIR];
+#include "world.h"
 
 static void world_free(void *p) {
   World *w = p;
   xfree(w->x); xfree(w->y); xfree(w->heading); xfree(w->age); xfree(w->species);
   xfree(w->cost); xfree(w->last_action); xfree(w->energy); xfree(w->alive);
   xfree(w->food); xfree(w->fert); xfree(w->facc); xfree(w->ghead); xfree(w->gnext);
+  xfree(w->sbuf); xfree(w->abuf); xfree(w->bbuf); xfree(w->dbuf);
   xfree(w);
 }
 
 static size_t world_memsize(const void *p) {
   const World *w = p;
-  return sizeof(World) + (size_t)w->cap * (2 * sizeof(double) + 5 * sizeof(int) + sizeof(long) + 1 + sizeof(int)) +
-         (size_t)w->fw * w->fh * 3 + (size_t)w->gw * w->gh * sizeof(int);
+  return sizeof(World) + (size_t)w->cap * (2 * sizeof(double) + 9 * sizeof(int32_t) + sizeof(int64_t) + 1 + SENSORS * sizeof(int32_t)) +
+         (size_t)w->fw * w->fh * 3 + (size_t)w->gw * w->gh * sizeof(int32_t);
 }
 
 static const rb_data_type_t world_type = {
@@ -69,24 +50,10 @@ static World *get_world(VALUE self) {
   return w;
 }
 
-/* World.new(width, height, food_cell, capacity) */
-static VALUE world_init(VALUE self, VALUE vw, VALUE vh, VALUE vcell, VALUE vcap) {
-  World *w = get_world(self);
-  w->w = NUM2DBL(vw); w->h = NUM2DBL(vh);
-  w->fcell = NUM2INT(vcell); w->cap = NUM2INT(vcap);
-  if (w->fcell <= 0 || w->cap <= 0) rb_raise(rb_eArgError, "bad world params");
-  w->fw = (int)(w->w / w->fcell); w->fh = (int)(w->h / w->fcell);
-  w->gcell = 24; w->gw = (int)ceil(w->w / w->gcell); w->gh = (int)ceil(w->h / w->gcell);
-  w->x = ZALLOC_N(double, w->cap); w->y = ZALLOC_N(double, w->cap);
-  w->heading = ZALLOC_N(int, w->cap); w->age = ZALLOC_N(int, w->cap);
-  w->species = ZALLOC_N(int, w->cap); w->cost = ZALLOC_N(int, w->cap);
-  w->last_action = ZALLOC_N(int, w->cap);
-  w->energy = ZALLOC_N(long, w->cap); w->alive = ZALLOC_N(unsigned char, w->cap);
-  w->food = ZALLOC_N(unsigned char, w->fw * w->fh);
-  w->fert = ZALLOC_N(unsigned char, w->fw * w->fh);
-  w->facc = ZALLOC_N(unsigned char, w->fw * w->fh);
-  w->ghead = ZALLOC_N(int, w->gw * w->gh); w->gnext = ZALLOC_N(int, w->cap);
-  return self;
+static inline double wrapd(double v, double m) {
+  if (v < 0) v += m;
+  if (v >= m) v -= m;
+  return v;
 }
 
 static inline int food_index(World *w, double x, double y) {
@@ -96,70 +63,59 @@ static inline int food_index(World *w, double x, double y) {
   return cy * w->fw + cx;
 }
 
-static inline double wrapd(double v, double m) {
-  if (v < 0) v += m;
-  if (v >= m) v -= m;
-  return v;
-}
-
-static inline double tdelta(double a, double b, double m) {
-  double d = b - a;
-  if (d > m / 2) d -= m;
-  if (d < -m / 2) d += m;
-  return d;
-}
-
-static void build_grid(World *w) {
-  int n = w->gw * w->gh;
-  for (int i = 0; i < n; i++) w->ghead[i] = -1;
-  for (int i = 0; i < w->used; i++) {
-    if (!w->alive[i]) continue;
-    int gx = (int)(w->x[i] / w->gcell) % w->gw, gy = (int)(w->y[i] / w->gcell) % w->gh;
-    int c = gy * w->gw + gx;
-    w->gnext[i] = w->ghead[c];
-    w->ghead[c] = i;
+/* World.new(width, height, food_cell, capacity, backend = :c) */
+static VALUE world_init(int argc, VALUE *argv, VALUE self) {
+  rb_check_arity(argc, 4, 5);
+  World *w = get_world(self);
+  w->w = NUM2DBL(argv[0]); w->h = NUM2DBL(argv[1]);
+  w->fcell = NUM2INT(argv[2]); w->cap = NUM2INT(argv[3]);
+  if (w->fcell <= 0 || w->cap <= 0) rb_raise(rb_eArgError, "bad world params");
+  w->backend = BACKEND_C;
+  if (argc == 5 && !NIL_P(argv[4])) {
+    ID b = SYM2ID(argv[4]);
+    if (b == rb_intern("c")) w->backend = BACKEND_C;
+    else if (b == rb_intern("asm")) w->backend = BACKEND_ASM;
+    else if (b == rb_intern("rust")) {
+#ifdef YP_HAVE_RUST
+      w->backend = BACKEND_RUST;
+#else
+      rb_raise(rb_eNotImpError, "built without the Rust kernel (cargo not found at build time)");
+#endif
+    } else rb_raise(rb_eArgError, "unknown backend");
   }
+  w->fw = (int)(w->w / w->fcell); w->fh = (int)(w->h / w->fcell);
+  w->gcell = 24; w->gw = (int)ceil(w->w / w->gcell); w->gh = (int)ceil(w->h / w->gcell);
+  w->x = ZALLOC_N(double, w->cap); w->y = ZALLOC_N(double, w->cap);
+  w->heading = ZALLOC_N(int32_t, w->cap); w->age = ZALLOC_N(int32_t, w->cap);
+  w->species = ZALLOC_N(int32_t, w->cap); w->cost = ZALLOC_N(int32_t, w->cap);
+  w->last_action = ZALLOC_N(int32_t, w->cap);
+  w->energy = ZALLOC_N(int64_t, w->cap); w->alive = ZALLOC_N(uint8_t, w->cap);
+  w->food = ZALLOC_N(uint8_t, w->fw * w->fh);
+  w->fert = ZALLOC_N(uint8_t, w->fw * w->fh);
+  w->facc = ZALLOC_N(uint8_t, w->fw * w->fh);
+  w->ghead = ZALLOC_N(int32_t, w->gw * w->gh); w->gnext = ZALLOC_N(int32_t, w->cap);
+  w->sbuf = ZALLOC_N(int32_t, (long)w->cap * SENSORS); w->abuf = ZALLOC_N(int32_t, w->cap);
+  w->bbuf = ZALLOC_N(int32_t, w->cap); w->dbuf = ZALLOC_N(int32_t, w->cap);
+  return self;
+}
+
+static VALUE world_backend(VALUE self) {
+  static const char *names[] = { "c", "rust", "asm" };
+  return ID2SYM(rb_intern(names[get_world(self)->backend]));
 }
 
 /* sense(out_array) -> alive count. out[i*6 .. i*6+5] = fa, fl, fr, en, cr, ag */
 static VALUE world_sense(VALUE self, VALUE out) {
   World *w = get_world(self);
   Check_Type(out, T_ARRAY);
-  build_grid(w);
-  int alive = 0;
-  for (int i = 0; i < w->used; i++) {
-    long base = (long)i * SENSORS;
-    if (!w->alive[i]) {
-      for (int k = 0; k < SENSORS; k++) rb_ary_store(out, base + k, INT2FIX(0));
-      continue;
-    }
-    alive++;
-    int h = w->heading[i];
-    int hl = (h - 6) & (NDIR - 1), hr = (h + 6) & (NDIR - 1);
-    double px = w->x[i], py = w->y[i];
-    int fa = w->food[food_index(w, px + COS_T[h] * 10.0, py + SIN_T[h] * 10.0)];
-    int fl = w->food[food_index(w, px + COS_T[hl] * 10.0, py + SIN_T[hl] * 10.0)];
-    int fr = w->food[food_index(w, px + COS_T[hr] * 10.0, py + SIN_T[hr] * 10.0)];
-    long en = w->energy[i] / 4; if (en > 255) en = 255; if (en < 0) en = 0;
-    int ag = w->age[i] / 8; if (ag > 255) ag = 255;
-    int cr = 0;
-    int gx = (int)(px / w->gcell), gy = (int)(py / w->gcell);
-    for (int oy = -1; oy <= 1; oy++) for (int ox = -1; ox <= 1; ox++) {
-      int cx = (gx + ox + w->gw) % w->gw, cy = (gy + oy + w->gh) % w->gh;
-      for (int j = w->ghead[cy * w->gw + cx]; j >= 0; j = w->gnext[j]) {
-        if (j == i) continue;
-        double dx = tdelta(px, w->x[j], w->w), dy = tdelta(py, w->y[j], w->h);
-        if (dx * dx + dy * dy < CROWD_R * CROWD_R) cr++;
-      }
-    }
-    if (cr > 15) cr = 15;
-    rb_ary_store(out, base + 0, INT2FIX(fa));
-    rb_ary_store(out, base + 1, INT2FIX(fl));
-    rb_ary_store(out, base + 2, INT2FIX(fr));
-    rb_ary_store(out, base + 3, LONG2FIX(en));
-    rb_ary_store(out, base + 4, INT2FIX(cr));
-    rb_ary_store(out, base + 5, INT2FIX(ag));
-  }
+  int32_t alive;
+#ifdef YP_HAVE_RUST
+  if (w->backend == BACKEND_RUST) alive = yp_rust_sense(w, w->sbuf);
+  else
+#endif
+  alive = yp_c_sense(w, w->sbuf);
+  long n = (long)w->used * SENSORS;
+  for (long k = 0; k < n; k++) rb_ary_store(out, k, INT2FIX(w->sbuf[k]));
   return INT2FIX(alive);
 }
 
@@ -167,79 +123,63 @@ static VALUE world_sense(VALUE self, VALUE out) {
 static VALUE world_act(VALUE self, VALUE actions, VALUE vthresh) {
   World *w = get_world(self);
   Check_Type(actions, T_ARRAY);
-  long thresh = NUM2LONG(vthresh);
-  VALUE births = rb_ary_new(), deaths = rb_ary_new();
+  int64_t thresh = NUM2LL(vthresh);
   long alen = RARRAY_LEN(actions);
-  int nf = w->fw * w->fh;
-
-  /* 1. resource field regrowth: integer accumulator, exact in both tiers */
-  for (int c = 0; c < nf; c++) {
-    int acc = w->facc[c] + w->fert[c];
-    int f = w->food[c] + (acc >> 8);
-    w->facc[c] = (unsigned char)(acc & 255);
-    w->food[c] = (unsigned char)(f > FOOD_MAX ? FOOD_MAX : f);
-  }
-
-  /* 2. move, eat, metabolise, age */
-  for (int i = 0; i < w->used; i++) {
-    if (!w->alive[i]) continue;
-    int a = i < alen ? (int)(NUM2LONG(RARRAY_AREF(actions, i)) & 3) : 0;
-    w->last_action[i] = a;
-    double speed;
-    switch (a) {
-      case 0: speed = 0.35; break;
-      case 1: w->heading[i] = (w->heading[i] - 3) & (NDIR - 1); speed = 1.0; break;
-      case 2: w->heading[i] = (w->heading[i] + 3) & (NDIR - 1); speed = 1.0; break;
-      default: speed = 2.4; break;
-    }
-    int h = w->heading[i];
-    w->x[i] = wrapd(w->x[i] + COS_T[h] * speed, w->w);
-    w->y[i] = wrapd(w->y[i] + SIN_T[h] * speed, w->h);
-    int fc = food_index(w, w->x[i], w->y[i]);
-    int bite = a == 0 ? 9 : 4;
-    int take = w->food[fc] < bite ? w->food[fc] : bite;
-    w->food[fc] -= take;
-    w->eaten_total += take;
-    w->energy[i] += take + take / 2;
-    w->energy[i] -= 3 + w->cost[i] + (a == 3 ? 3 : 0);
-    w->age[i]++;
-  }
-
-  /* 3. collision: push overlapping bodies apart (pairs i<j, grid order) */
-  build_grid(w);
-  for (int i = 0; i < w->used; i++) {
-    if (!w->alive[i]) continue;
-    int gx = (int)(w->x[i] / w->gcell), gy = (int)(w->y[i] / w->gcell);
-    for (int oy = -1; oy <= 1; oy++) for (int ox = -1; ox <= 1; ox++) {
-      int cx = (gx + ox + w->gw) % w->gw, cy = (gy + oy + w->gh) % w->gh;
-      for (int j = w->ghead[cy * w->gw + cx]; j >= 0; j = w->gnext[j]) {
-        if (j <= i) continue;
-        double dx = tdelta(w->x[i], w->x[j], w->w), dy = tdelta(w->y[i], w->y[j], w->h);
-        double d2 = dx * dx + dy * dy;
-        if (d2 >= (2 * RADIUS) * (2 * RADIUS) || d2 == 0.0) continue;
-        double d = sqrt(d2), push = (2 * RADIUS - d) * 0.5 / d;
-        w->x[i] = wrapd(w->x[i] - dx * push, w->w); w->y[i] = wrapd(w->y[i] - dy * push, w->h);
-        w->x[j] = wrapd(w->x[j] + dx * push, w->w); w->y[j] = wrapd(w->y[j] + dy * push, w->h);
-      }
-    }
-  }
-
-  /* 4. death (corpse returns nutrients) and birth candidates */
-  for (int i = 0; i < w->used; i++) {
-    if (!w->alive[i]) continue;
-    if (w->energy[i] <= 0 || w->age[i] >= MAX_AGE) {
-      w->alive[i] = 0;
-      int fc = food_index(w, w->x[i], w->y[i]);
-      int f = w->food[fc] + 40;
-      w->food[fc] = (unsigned char)(f > FOOD_MAX ? FOOD_MAX : f);
-      w->deaths_total++;
-      rb_ary_push(deaths, INT2FIX(i));
-    } else if (w->energy[i] >= thresh) {
-      rb_ary_push(births, INT2FIX(i));
-    }
-  }
-  w->ticks++;
+  if (alen > w->used) alen = w->used;
+  for (long i = 0; i < alen; i++) w->abuf[i] = (int32_t)(NUM2LONG(RARRAY_AREF(actions, i)) & 3);
+  int32_t nb = 0, nd = 0;
+#ifdef YP_HAVE_RUST
+  if (w->backend == BACKEND_RUST) yp_rust_act(w, w->abuf, alen, thresh, w->bbuf, &nb, w->dbuf, &nd);
+  else
+#endif
+  yp_c_act(w, w->abuf, alen, thresh, w->bbuf, &nb, w->dbuf, &nd);
+  VALUE births = rb_ary_new_capa(nb), deaths = rb_ary_new_capa(nd);
+  for (int k = 0; k < nb; k++) rb_ary_push(births, INT2FIX(w->bbuf[k]));
+  for (int k = 0; k < nd; k++) rb_ary_push(deaths, INT2FIX(w->dbuf[k]));
   return rb_assoc_new(births, deaths);
+}
+
+static double now_sec(void) {
+  struct timespec ts;
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  return ts.tv_sec + ts.tv_nsec * 1e-9;
+}
+
+/* kernel_bench(iters) -> [sense_sec, act_sec, crowd_sec_or_nil, updates]
+ * Times the backend kernels alone, with no Ruby Array glue, on this world
+ * (mutates it). crowd_sec isolates the crowd-sensing scan (C or asm); the
+ * Rust kernel inlines its scan, so it reports nil there. */
+static VALUE world_kernel_bench(VALUE self, VALUE viters) {
+  World *w = get_world(self);
+  int n = NUM2INT(viters);
+  for (int i = 0; i < w->used; i++) w->abuf[i] = i & 3;
+  double ts = 0, ta = 0, tc = 0;
+  long updates = 0, sink = 0;
+  for (int it = 0; it < n; it++) {
+    int32_t nb, nd, alive;
+    double t0 = now_sec();
+#ifdef YP_HAVE_RUST
+    if (w->backend == BACKEND_RUST) alive = yp_rust_sense(w, w->sbuf); else
+#endif
+    alive = yp_c_sense(w, w->sbuf);
+    double t1 = now_sec();
+#ifdef YP_HAVE_RUST
+    if (w->backend == BACKEND_RUST) yp_rust_act(w, w->abuf, w->used, INT64_MAX, w->bbuf, &nb, w->dbuf, &nd); else
+#endif
+    yp_c_act(w, w->abuf, w->used, INT64_MAX, w->bbuf, &nb, w->dbuf, &nd);
+    double t2 = now_sec();
+    ts += t1 - t0; ta += t2 - t1; updates += alive;
+    if (w->backend != BACKEND_RUST) {
+      yp_build_grid(w);
+      CrowdCtx ctx = { w->x, w->y, w->ghead, w->gnext, w->gw, w->gh, (double)w->gcell, w->w, w->h, CROWD_R * CROWD_R };
+      int32_t (*crowd)(const CrowdCtx *, int32_t) = w->backend == BACKEND_ASM ? yp_asm_crowd : yp_c_crowd;
+      double t3 = now_sec();
+      for (int i = 0; i < w->used; i++) if (w->alive[i]) sink += crowd(&ctx, i);
+      tc += now_sec() - t3;
+    }
+  }
+  (void)sink;
+  return rb_ary_new_from_args(4, DBL2NUM(ts), DBL2NUM(ta), w->backend == BACKEND_RUST ? Qnil : DBL2NUM(tc), LONG2NUM(updates));
 }
 
 /* spawn(x, y, heading, energy, species_id, cost) -> slot */
@@ -345,10 +285,12 @@ static VALUE world_stats(VALUE self) {
 }
 
 void Init_yarvpilled_world(VALUE mNative) {
-  for (int k = 0; k < NDIR; k++) { COS_T[k] = cos(2.0 * M_PI * k / 64.0); SIN_T[k] = sin(2.0 * M_PI * k / 64.0); }
+  for (int k = 0; k < NDIR; k++) { yp_cos_t[k] = cos(2.0 * M_PI * k / 64.0); yp_sin_t[k] = sin(2.0 * M_PI * k / 64.0); }
   VALUE c = rb_define_class_under(mNative, "World", rb_cObject);
   rb_define_alloc_func(c, world_alloc);
-  rb_define_method(c, "initialize", world_init, 4);
+  rb_define_method(c, "initialize", world_init, -1);
+  rb_define_method(c, "backend", world_backend, 0);
+  rb_define_method(c, "kernel_bench", world_kernel_bench, 1);
   rb_define_method(c, "sense", world_sense, 1);
   rb_define_method(c, "act", world_act, 2);
   rb_define_method(c, "spawn", world_spawn_v, -1);

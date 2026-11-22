@@ -1,16 +1,32 @@
 # frozen_string_literal: true
+
 require "rake/testtask"
 require "fileutils"
 
-desc "Compile the ruby.h C extension into lib/yarvpilled/"
-task :compile do
-  build = File.expand_path("tmp/build", __dir__)
+ROOT = __dir__
+RUST_DIR = File.join(ROOT, "ext/yarvpilled_rust")
+RUST_LIB = File.join(RUST_DIR, "target/release/libyarvpilled_rust.a")
+
+desc "Build the Rust world kernel (staticlib, C ABI) if cargo is available"
+task :rust do
+  if system("cargo --version > /dev/null 2>&1")
+    Dir.chdir(RUST_DIR) { sh "cargo build --release --quiet" }
+  else
+    warn "cargo not found: building without the :rust backend"
+  end
+end
+
+desc "Compile the ruby.h C extension (+asm, +Rust) into lib/yarvpilled/"
+task compile: :rust do
+  build = File.join(ROOT, "tmp/build")
+  FileUtils.rm_rf(build)
   FileUtils.mkdir_p(build)
   Dir.chdir(build) do
-    sh "ruby #{File.expand_path('ext/yarvpilled_native/extconf.rb', __dir__)}"
+    env = File.exist?(RUST_LIB) ? { "YP_RUST_LIB" => RUST_LIB } : {}
+    sh env, "ruby #{File.join(ROOT, 'ext/yarvpilled_native/extconf.rb')}"
     sh "make -s"
     so = Dir["yarvpilled_native.{so,bundle}"].first
-    FileUtils.cp(so, File.expand_path("lib/yarvpilled/", __dir__))
+    FileUtils.cp(so, File.join(ROOT, "lib/yarvpilled/"))
   end
 end
 

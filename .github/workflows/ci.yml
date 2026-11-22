@@ -14,7 +14,8 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-      - name: Compile C extension
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Compile C extension (+asm, +Rust kernel)
         run: rake compile
       - name: Tests (interpreter)
         run: rake test

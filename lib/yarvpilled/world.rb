@@ -14,17 +14,31 @@ module Yarvpilled
   end
 
   module World
+    KINDS = %i[native c asm rust ruby].freeze
+
     module_function
 
+    # :native/:c -> C kernel, :asm -> C kernel with hand-written x86-64 crowd
+    # scan, :rust -> Rust kernel, :ruby -> pure Ruby (WorldRuby).
     def build(kind, w, h, cell, cap)
       case kind
-      when :native
+      when :native, :c, :asm, :rust
         raise "C extension not compiled; run `rake compile` or use --world=ruby" unless Native::AVAILABLE
 
-        Native::World.new(w, h, cell, cap)
+        Native::World.new(w, h, cell, cap, kind == :native ? :c : kind)
       when :ruby then WorldRuby.new(w, h, cell, cap)
       else raise ArgumentError, "unknown world #{kind}"
       end
+    end
+
+    def available?(kind)
+      return true if kind == :ruby
+      return false unless Native::AVAILABLE
+
+      Native::World.new(8, 8, 8, 1, kind == :native ? :c : kind)
+      true
+    rescue NotImplementedError
+      false
     end
   end
 end

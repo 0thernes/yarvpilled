@@ -25,7 +25,10 @@ OptionParser.new do |o|
   o.on("--headless", "simulate and print stats (default)") { opts[:mode] = :headless }
   o.on("--bench", "run the 3-tier benchmark") { opts[:mode] = :bench }
   o.on("--bench-tier", "(internal) run one tier") { opts[:mode] = :bench_tier }
-  o.on("--world=KIND", %w[native ruby], "native (C ext) or ruby") { opts[:world] = _1.to_sym }
+  o.on("--control", "selection vs drift control experiment") { opts[:mode] = :control }
+  o.on("--replicates=N", Integer, "control: seeds per condition (default 8)") { opts[:replicates] = _1 }
+  o.on("--repeats=N", Integer, "bench: runs per tier (default 5)") { opts[:repeats] = _1 }
+  o.on("--world=KIND", %w[native c asm rust ruby], "native/c, asm, rust (C ext backends) or ruby") { opts[:world] = _1.to_sym }
   o.on("--seed=N", Integer) { opts[:seed] = _1 }
   o.on("--seconds=N", Integer, "video length") { opts[:seconds] = _1 }
   o.on("--fps=N", Integer) { opts[:fps] = _1 }
@@ -41,7 +44,9 @@ case opts[:mode]
 when :bench_tier
   puts JSON.generate(Yarvpilled::Bench.run_tier(world: opts[:world], ticks: opts[:ticks], seed: opts[:seed]))
 when :bench
-  puts Yarvpilled::Bench.run_all(ticks: opts[:ticks], seed: opts[:seed], out_dir: opts[:out])
+  puts Yarvpilled::Bench.run_all(ticks: opts[:ticks], seed: opts[:seed], out_dir: opts[:out], repeats: opts[:repeats] || 5)
+when :control
+  puts Yarvpilled::Control.run(replicates: opts[:replicates] || 8, ticks: opts[:ticks], out_dir: opts[:out])
 when :tui
   sim = Yarvpilled::Simulation.new(seed: opts[:seed], world: opts[:world])
   Yarvpilled::TUI.new(sim).run(frames: opts[:frames], ticks_per_frame: 1)

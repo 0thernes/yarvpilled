@@ -1,0 +1,664 @@
+{
+  "pure Ruby interpreter": [
+    {
+      "world": "ruby",
+      "yjit": false,
+      "ticks": 2000,
+      "seconds": 4.800431943993317,
+      "creatures_per_sec": 71055.06420662941,
+      "generations_per_sec": 1.8748312870598067,
+      "ticks_per_sec": 416.6291749021793,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.28691965356286253,
+        "brains": 0.17025433024640363,
+        "act": 0.5161190987856981,
+        "births": 0.026706917405035793
+      },
+      "allocated_objects": 754998,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 137090.339007218,
+      "kernel_updates_per_sec": null,
+      "crowd_ns": null
+    },
+    {
+      "world": "ruby",
+      "yjit": false,
+      "ticks": 2000,
+      "seconds": 4.59718729899032,
+      "creatures_per_sec": 74196.45487903323,
+      "generations_per_sec": 1.9577187994878236,
+      "ticks_per_sec": 435.0486221084052,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.28366285696177307,
+        "brains": 0.1766019523866532,
+        "act": 0.512759763048473,
+        "births": 0.02697542760310065
+      },
+      "allocated_objects": 755000,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 145362.05087574085,
+      "kernel_updates_per_sec": null,
+      "crowd_ns": null
+    },
+    {
+      "world": "ruby",
+      "yjit": false,
+      "ticks": 2000,
+      "seconds": 4.2470448299718555,
+      "creatures_per_sec": 80313.49177029064,
+      "generations_per_sec": 2.11912055565932,
+      "ticks_per_sec": 470.9156790354044,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.27953062568270565,
+        "brains": 0.17073541399837397,
+        "act": 0.5224133807246539,
+        "births": 0.027320579594266457
+      },
+      "allocated_objects": 754997,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 145500.1843629682,
+      "kernel_updates_per_sec": null,
+      "crowd_ns": null
+    },
+    {
+      "world": "ruby",
+      "yjit": false,
+      "ticks": 2000,
+      "seconds": 4.288187778001884,
+      "creatures_per_sec": 79542.92527715192,
+      "generations_per_sec": 2.098788687885684,
+      "ticks_per_sec": 466.39748619681865,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.2805622538225233,
+        "brains": 0.17211235511393866,
+        "act": 0.5202711337804884,
+        "births": 0.027054257283049606
+      },
+      "allocated_objects": 755002,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 151615.7539266355,
+      "kernel_updates_per_sec": null,
+      "crowd_ns": null
+    },
+    {
+      "world": "ruby",
+      "yjit": false,
+      "ticks": 2000,
+      "seconds": 4.254531397979008,
+      "creatures_per_sec": 80172.16658972767,
+      "generations_per_sec": 2.1153916044138703,
+      "ticks_per_sec": 470.08702320308225,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.2789064672183215,
+        "brains": 0.170806853517679,
+        "act": 0.5233869603964992,
+        "births": 0.02689971886750028
+      },
+      "allocated_objects": 755005,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 154603.2716356585,
+      "kernel_updates_per_sec": null,
+      "crowd_ns": null
+    }
+  ],
+  "pure Ruby + YJIT": [
+    {
+      "world": "ruby",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 2.1910926260170527,
+      "creatures_per_sec": 155673.47356740423,
+      "generations_per_sec": 4.107539723850066,
+      "ticks_per_sec": 912.7866053000146,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.24323324547125966,
+        "brains": 0.3169466420642801,
+        "act": 0.37574768206773185,
+        "births": 0.06407243039672844
+      },
+      "allocated_objects": 758672,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 371538.0905058135,
+      "kernel_updates_per_sec": null,
+      "crowd_ns": null
+    },
+    {
+      "world": "ruby",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 2.2099543410004117,
+      "creatures_per_sec": 154344.81775111772,
+      "generations_per_sec": 4.072482328266493,
+      "ticks_per_sec": 904.9960729481096,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.2440884798388516,
+        "brains": 0.3124537400087887,
+        "act": 0.3799400428223385,
+        "births": 0.06351773733002118
+      },
+      "allocated_objects": 758669,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 371080.2233654701,
+      "kernel_updates_per_sec": null,
+      "crowd_ns": null
+    },
+    {
+      "world": "ruby",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 2.3054895859968383,
+      "creatures_per_sec": 147949.052588116,
+      "generations_per_sec": 3.903726156329011,
+      "ticks_per_sec": 867.4947014064469,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.25134691618237814,
+        "brains": 0.30605779558199586,
+        "act": 0.3789043034046105,
+        "births": 0.06369098483101547
+      },
+      "allocated_objects": 758675,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 356990.7286249189,
+      "kernel_updates_per_sec": null,
+      "crowd_ns": null
+    },
+    {
+      "world": "ruby",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 2.432516603003023,
+      "creatures_per_sec": 140223.09224072995,
+      "generations_per_sec": 3.6998719716400696,
+      "ticks_per_sec": 822.193771475571,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.250919941842237,
+        "brains": 0.31060036031999605,
+        "act": 0.37651230696495347,
+        "births": 0.06196739087281351
+      },
+      "allocated_objects": 758671,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 354188.39255563443,
+      "kernel_updates_per_sec": null,
+      "crowd_ns": null
+    },
+    {
+      "world": "ruby",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 2.4477678110124543,
+      "creatures_per_sec": 139349.4098849658,
+      "generations_per_sec": 3.6768193288224458,
+      "ticks_per_sec": 817.0709619605435,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.23821449180671045,
+        "brains": 0.30986683009373583,
+        "act": 0.38739028178148555,
+        "births": 0.06452839631806821
+      },
+      "allocated_objects": 758674,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 357930.6740097738,
+      "kernel_updates_per_sec": null,
+      "crowd_ns": null
+    }
+  ],
+  "C + YJIT": [
+    {
+      "world": "c",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.249803073995281,
+      "creatures_per_sec": 272918.9958779761,
+      "generations_per_sec": 7.2011344725128925,
+      "ticks_per_sec": 1600.2521050028652,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.1047824658711992,
+        "brains": 0.7006778663833133,
+        "act": 0.06837451214360821,
+        "births": 0.12616515560187927
+      },
+      "allocated_objects": 756509,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 2860074.322607425,
+      "kernel_updates_per_sec": 3729231.9476655163,
+      "kernel_sense_share": 0.45964349114745534,
+      "crowd_ns": 106.65597328625154
+    },
+    {
+      "world": "c",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.222690112015698,
+      "creatures_per_sec": 278970.931921318,
+      "generations_per_sec": 7.360818503032475,
+      "ticks_per_sec": 1635.7374451183277,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.06809350149692459,
+        "brains": 0.7482583891489959,
+        "act": 0.06488346006041117,
+        "births": 0.11876464929366835
+      },
+      "allocated_objects": 756509,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 2945412.8781889793,
+      "kernel_updates_per_sec": 3792145.9783514077,
+      "kernel_sense_share": 0.4510491166665485,
+      "crowd_ns": 103.08313837109988
+    },
+    {
+      "world": "c",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.1698940740025137,
+      "creatures_per_sec": 291560.5844835377,
+      "generations_per_sec": 7.693004178753249,
+      "ticks_per_sec": 1709.5564841673886,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.07741790893292072,
+        "brains": 0.7236377871483122,
+        "act": 0.07137725964030177,
+        "births": 0.1275670442784653
+      },
+      "allocated_objects": 756509,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 3202417.9262649585,
+      "kernel_updates_per_sec": 3733453.501305895,
+      "kernel_sense_share": 0.4510801075892728,
+      "crowd_ns": 104.40973413399963
+    },
+    {
+      "world": "c",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.2833382049866486,
+      "creatures_per_sec": 265787.3027348614,
+      "generations_per_sec": 7.012960391133709,
+      "ticks_per_sec": 1558.4356424741577,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.07569381887204348,
+        "brains": 0.7168697626000751,
+        "act": 0.07287271858344556,
+        "births": 0.13456369994443587
+      },
+      "allocated_objects": 756510,
+      "gc_runs": 82,
+      "world_api_updates_per_sec": 3352682.345057112,
+      "kernel_updates_per_sec": 3812732.4241407043,
+      "kernel_sense_share": 0.46246554548905777,
+      "crowd_ns": 100.27962314325123
+    },
+    {
+      "world": "c",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.1223946519894525,
+      "creatures_per_sec": 303899.3453821316,
+      "generations_per_sec": 8.018569924622712,
+      "ticks_per_sec": 1781.904427693936,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.07646247739457365,
+        "brains": 0.7232490269028861,
+        "act": 0.07210071226149715,
+        "births": 0.12818778344104312
+      },
+      "allocated_objects": 756509,
+      "gc_runs": 82,
+      "world_api_updates_per_sec": 3205030.185123263,
+      "kernel_updates_per_sec": 3852531.3566787564,
+      "kernel_sense_share": 0.4430166025366899,
+      "crowd_ns": 99.36380335477902
+    }
+  ],
+  "Rust + YJIT": [
+    {
+      "world": "rust",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.2587579039973207,
+      "creatures_per_sec": 270977.4444448899,
+      "generations_per_sec": 7.1499054515721685,
+      "ticks_per_sec": 1588.8678781271487,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.09635224029358753,
+        "brains": 0.6994262511636626,
+        "act": 0.07945777848473792,
+        "births": 0.12476373005801186
+      },
+      "allocated_objects": 756504,
+      "gc_runs": 82,
+      "world_api_updates_per_sec": 2663853.2924347105,
+      "kernel_updates_per_sec": 3195423.7575354856,
+      "kernel_sense_share": 0.4529271889133614,
+      "crowd_ns": null
+    },
+    {
+      "world": "rust",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.1865356050257105,
+      "creatures_per_sec": 287471.35657392174,
+      "generations_per_sec": 7.585107401648502,
+      "ticks_per_sec": 1685.5794225885559,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.07680217630869625,
+        "brains": 0.7193863357685341,
+        "act": 0.08124661881756647,
+        "births": 0.12256486910520326
+      },
+      "allocated_objects": 756504,
+      "gc_runs": 82,
+      "world_api_updates_per_sec": 2776397.933628657,
+      "kernel_updates_per_sec": 2929673.5961547326,
+      "kernel_sense_share": 0.4346958436800317,
+      "crowd_ns": null
+    },
+    {
+      "world": "rust",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.3427524410071783,
+      "creatures_per_sec": 254026.7212205921,
+      "generations_per_sec": 6.7026502616142976,
+      "ticks_per_sec": 1489.4778359142883,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.1147775808462997,
+        "brains": 0.6811103642058203,
+        "act": 0.08003584860186096,
+        "births": 0.1240762063460191
+      },
+      "allocated_objects": 756509,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 2654422.973683408,
+      "kernel_updates_per_sec": 2817090.7139794175,
+      "kernel_sense_share": 0.4376987683530291,
+      "crowd_ns": null
+    },
+    {
+      "world": "rust",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.1952778340200894,
+      "creatures_per_sec": 285368.79902875127,
+      "generations_per_sec": 7.52963013605817,
+      "ticks_per_sec": 1673.25114134626,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.08012238134845635,
+        "brains": 0.7038522396532492,
+        "act": 0.08531979822942969,
+        "births": 0.13070558076886477
+      },
+      "allocated_objects": 756505,
+      "gc_runs": 82,
+      "world_api_updates_per_sec": 2706854.1473309984,
+      "kernel_updates_per_sec": 3089648.158178599,
+      "kernel_sense_share": 0.4450574243165675,
+      "crowd_ns": null
+    },
+    {
+      "world": "rust",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.3188340759952553,
+      "creatures_per_sec": 258633.74795088868,
+      "generations_per_sec": 6.824209477002002,
+      "ticks_per_sec": 1516.490994889334,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.07739960491975682,
+        "brains": 0.7105501894722666,
+        "act": 0.08533586832346442,
+        "births": 0.1267143372845122
+      },
+      "allocated_objects": 756509,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 2717179.073477268,
+      "kernel_updates_per_sec": 3117850.2874579197,
+      "kernel_sense_share": 0.44525675089084876,
+      "crowd_ns": null
+    }
+  ],
+  "asm + YJIT": [
+    {
+      "world": "asm",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.2180887169961352,
+      "creatures_per_sec": 280024.7594782394,
+      "generations_per_sec": 7.388624387059777,
+      "ticks_per_sec": 1641.9165304577284,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.07373786384829302,
+        "brains": 0.724384741296034,
+        "act": 0.07024624057623692,
+        "births": 0.131631154279436
+      },
+      "allocated_objects": 756510,
+      "gc_runs": 82,
+      "world_api_updates_per_sec": 2946694.3753955457,
+      "kernel_updates_per_sec": 3368523.163473375,
+      "kernel_sense_share": 0.43390793398351685,
+      "crowd_ns": 111.92206091234564
+    },
+    {
+      "world": "asm",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.3818125460238662,
+      "creatures_per_sec": 246846.0725599091,
+      "generations_per_sec": 6.513184458989964,
+      "ticks_per_sec": 1447.374324219992,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.06942044563037468,
+        "brains": 0.7378260054488818,
+        "act": 0.06730135698573327,
+        "births": 0.1254521919350103
+      },
+      "allocated_objects": 756506,
+      "gc_runs": 82,
+      "world_api_updates_per_sec": 2884147.499866806,
+      "kernel_updates_per_sec": 3248719.508660386,
+      "kernel_sense_share": 0.47255054964353754,
+      "crowd_ns": 108.051963053142
+    },
+    {
+      "world": "asm",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.2811360290215816,
+      "creatures_per_sec": 266244.1710116436,
+      "generations_per_sec": 7.025015139784496,
+      "ticks_per_sec": 1561.1144755076657,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.07529337174194638,
+        "brains": 0.7202025047454337,
+        "act": 0.06880936683377635,
+        "births": 0.1356947566788436
+      },
+      "allocated_objects": 756505,
+      "gc_runs": 82,
+      "world_api_updates_per_sec": 3074169.6881081457,
+      "kernel_updates_per_sec": 3778833.957063961,
+      "kernel_sense_share": 0.4366173903459924,
+      "crowd_ns": 101.50646411754376
+    },
+    {
+      "world": "asm",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.2272853449976537,
+      "creatures_per_sec": 277926.4018675723,
+      "generations_per_sec": 7.333257939307672,
+      "ticks_per_sec": 1629.612875401705,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.07294916908543558,
+        "brains": 0.7221307941296139,
+        "act": 0.06985643944894282,
+        "births": 0.1350635973360077
+      },
+      "allocated_objects": 756504,
+      "gc_runs": 82,
+      "world_api_updates_per_sec": 2867848.9813291267,
+      "kernel_updates_per_sec": 3509463.8435618277,
+      "kernel_sense_share": 0.4572002327216249,
+      "crowd_ns": 104.45937516578852
+    },
+    {
+      "world": "asm",
+      "yjit": true,
+      "ticks": 2000,
+      "seconds": 1.2379986560263205,
+      "creatures_per_sec": 275521.30072162865,
+      "generations_per_sec": 7.26979787594265,
+      "ticks_per_sec": 1615.5106390983667,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.07619711381288016,
+        "brains": 0.7237821064607723,
+        "act": 0.07221063490641437,
+        "births": 0.12781014481993308
+      },
+      "allocated_objects": 756507,
+      "gc_runs": 82,
+      "world_api_updates_per_sec": 2787973.3489361503,
+      "kernel_updates_per_sec": 3615865.19704599,
+      "kernel_sense_share": 0.43598001005462544,
+      "crowd_ns": 103.97603648470977
+    }
+  ],
+  "C, interpreter (extra)": [
+    {
+      "world": "c",
+      "yjit": false,
+      "ticks": 2000,
+      "seconds": 1.735432765999576,
+      "creatures_per_sec": 196547.51637902597,
+      "generations_per_sec": 5.186026319386779,
+      "ticks_per_sec": 1152.4502931970621,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.0706498001472954,
+        "brains": 0.7644498793410189,
+        "act": 0.06824714265478149,
+        "births": 0.09665317785690422
+      },
+      "allocated_objects": 752845,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 2540855.3589150175,
+      "kernel_updates_per_sec": 3606484.805135103,
+      "kernel_sense_share": 0.4508685342239072,
+      "crowd_ns": 108.2977169365525
+    },
+    {
+      "world": "c",
+      "yjit": false,
+      "ticks": 2000,
+      "seconds": 1.5478363299916964,
+      "creatures_per_sec": 220368.9068351496,
+      "generations_per_sec": 5.814568262555436,
+      "ticks_per_sec": 1292.1262805678746,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.07206527036027521,
+        "brains": 0.7665567845402259,
+        "act": 0.0695193915821394,
+        "births": 0.09185855351735947
+      },
+      "allocated_objects": 752844,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 2883415.5974238208,
+      "kernel_updates_per_sec": 3629376.7386233956,
+      "kernel_sense_share": 0.4510344295635344,
+      "crowd_ns": 107.69261182304035
+    },
+    {
+      "world": "c",
+      "yjit": false,
+      "ticks": 2000,
+      "seconds": 1.5776954910252243,
+      "creatures_per_sec": 216198.24734261507,
+      "generations_per_sec": 5.7045228633768765,
+      "ticks_per_sec": 1267.6717474170837,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.07122847475959622,
+        "brains": 0.7639130043483822,
+        "act": 0.06950839916043952,
+        "births": 0.09535012173158208
+      },
+      "allocated_objects": 752842,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 3035365.3866080195,
+      "kernel_updates_per_sec": 3584645.3520469633,
+      "kernel_sense_share": 0.4510263792425482,
+      "crowd_ns": 108.64193236759294
+    },
+    {
+      "world": "c",
+      "yjit": false,
+      "ticks": 2000,
+      "seconds": 1.5818874999822583,
+      "creatures_per_sec": 215625.32101924162,
+      "generations_per_sec": 5.689405852249885,
+      "ticks_per_sec": 1264.3124116110855,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.07448692608438662,
+        "brains": 0.760758272490894,
+        "act": 0.0710926721862983,
+        "births": 0.09366212923842104
+      },
+      "allocated_objects": 752845,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 2807776.1879594186,
+      "kernel_updates_per_sec": 2980834.252537389,
+      "kernel_sense_share": 0.4351852519805869,
+      "crowd_ns": 157.2741537622791
+    },
+    {
+      "world": "c",
+      "yjit": false,
+      "ticks": 2000,
+      "seconds": 1.7966267120209523,
+      "creatures_per_sec": 189853.01605380012,
+      "generations_per_sec": 5.009387837652857,
+      "ticks_per_sec": 1113.1972972561905,
+      "checksum": "557-9-178-1263170-160",
+      "share": {
+        "sense": 0.06341856321779633,
+        "brains": 0.743924818545674,
+        "act": 0.10244784168559203,
+        "births": 0.09020877655093755
+      },
+      "allocated_objects": 752842,
+      "gc_runs": 83,
+      "world_api_updates_per_sec": 2487746.6955162007,
+      "kernel_updates_per_sec": 3209836.159205279,
+      "kernel_sense_share": 0.4640353332714486,
+      "crowd_ns": 112.6587990473213
+    }
+  ]
+}

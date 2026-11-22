@@ -5,3 +5,4 @@
 *.o
 Makefile
 mkmf.log
+/ext/yarvpilled_rust/target/

@@ -37,10 +37,20 @@ module Yarvpilled
     attr_reader :world, :tick, :species, :events, :lineage, :stats, :votes, :rewrite_log, :world_impl,
                 :max_gen, :births_total, :mutations_total, :rewrites_total, :compacts, :amnesias, :flash,
                 :fiber_switches, :fiber_switches_total, :resurrections, :ractor_count, :gc_snapshot,
-                :objects_snapshot, :yjit_snapshot, :last_compact, :apex_id, :sensors
+                :objects_snapshot, :yjit_snapshot, :last_compact, :apex_id, :sensors, :prof, :control
 
-    def initialize(seed: 42, world: (Native::AVAILABLE ? :native : :ruby), ractors: 6, log: nil, events_enabled: true)
+    # control: :selection (default) or :drift. Drift is the null model: the
+    # brain still runs (same cost to the VM) but its output is replaced by a
+    # random action, and metabolic cost is flat, so genomes carry no fitness
+    # signal and evolve by mutation + random drift only.
+    def initialize(seed: 42, world: (Native::AVAILABLE ? :native : :ruby), ractors: 6, log: nil, events_enabled: true,
+                   control: :selection)
       @rng = Random.new(seed)
+      @control = control
+      raise ArgumentError, "control must be :selection or :drift" unless %i[selection drift].include?(control)
+
+      @drift_rng = Random.new(seed ^ 0x5EED_D21F)
+      @prof = Hash.new(0.0)
       @world_impl = world
       @world = World.build(world, WORLD_W, WORLD_H, FOOD_CELL, CAPACITY)
       @fw, @fh, = @world.food_dims
@@ -98,11 +108,20 @@ module Yarvpilled
       @tick += 1
       @flash *= 0.86
       refresh_fertility if (@tick % 25).zero?
+      t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       @world.sense(@sensors)
+      t1 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       attend!
+      t2 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       births, deaths = @world.act(@actions, BIRTH_ENERGY)
+      t3 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       deaths.each { |slot| bury(slot) }
       births.each { |slot| give_birth(slot) }
+      t4 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      @prof[:sense] += t1 - t0
+      @prof[:brains] += t2 - t1
+      @prof[:act] += t3 - t2
+      @prof[:births] += t4 - t3
       resurrect! if alive_count < 14
       if @events_enabled
         hive_vote! if (@tick % 40).zero? && !@experts.empty?
@@ -125,13 +144,14 @@ module Yarvpilled
       CAPACITY.times { |s| groups[@slot_species[s]] << s if @slot_alive[s] }
       sens = @sensors
       acts = @actions
+      drift = @control == :drift ? @drift_rng : nil
       fibers = groups.map do |sid, slots|
         mind = @species[sid].mind
         Fiber.new do
           slots.each_with_index do |s, k|
             b = s * 6
             out = mind.think(sens[b], sens[b + 1], sens[b + 2], sens[b + 3], sens[b + 4], sens[b + 5])
-            acts[s] = out.to_action
+            acts[s] = drift ? drift.rand(4) : out.to_action
             observe_rewrite(sid, s, out) if @pending_rewrite
             Fiber.yield if (k & 7) == 7
           end
@@ -183,7 +203,7 @@ module Yarvpilled
     end
 
     def place(sp, x, y, energy, gen)
-      slot = @world.spawn(x, y, @rng.rand(64), energy, sp.id, sp.genome.traits[:cost])
+      slot = @world.spawn(x, y, @rng.rand(64), energy, sp.id, cost_of(sp.genome))
       return nil unless slot
 
       @slot_species[slot] = sp.id
@@ -193,6 +213,8 @@ module Yarvpilled
       sp.peak = sp.alive if sp.alive > sp.peak
       slot
     end
+
+    def cost_of(genome) = @control == :drift ? 2 : genome.traits[:cost]
 
     def bury(slot)
       @slot_alive[slot] = false
@@ -355,7 +377,7 @@ module Yarvpilled
       weak.genome = donor
       weak.color = donor.color
       weak.rewrites += 1
-      cost = donor.traits[:cost]
+      cost = cost_of(donor)
       CAPACITY.times { |s| @world.set_species(s, weak.id, cost) if @slot_alive[s] && @slot_species[s] == weak.id }
       remember_ops(donor)
       @rewrites_total += 1
@@ -455,27 +477,32 @@ module Yarvpilled
     end
 
     def refresh_fertility
-      t = @tick / 25.0
+      @fertility_bytes = Simulation.fertility_bytes(@tick, @fw, @fh)
+      @world.fertility = @fertility_bytes
+    end
+
+    # Five drifting Gaussian food patches; deterministic in (tick, fw, fh).
+    def self.fertility_bytes(tick, fw, fh)
+      t = tick / 25.0
       patches = Array.new(5) do |k|
         a = t * (0.05 + k * 0.013) + k * 1.7
-        [(@fw / 2.0) + Math.cos(a) * @fw * (0.18 + 0.06 * k), (@fh / 2.0) + Math.sin(a * 1.3) * @fh * (0.16 + 0.05 * k), 7.0 + k * 1.5]
+        [(fw / 2.0) + Math.cos(a) * fw * (0.18 + 0.06 * k), (fh / 2.0) + Math.sin(a * 1.3) * fh * (0.16 + 0.05 * k), 7.0 + k * 1.5]
       end
-      bytes = Array.new(@fw * @fh)
-      @fh.times do |y|
-        @fw.times do |x|
+      bytes = Array.new(fw * fh)
+      fh.times do |y|
+        fw.times do |x|
           v = 1.0
           patches.each do |px, py, r|
             dx = (x - px).abs
-            dx = @fw - dx if dx > @fw / 2
+            dx = fw - dx if dx > fw / 2
             dy = (y - py).abs
-            dy = @fh - dy if dy > @fh / 2
+            dy = fh - dy if dy > fh / 2
             v += 52.0 * Math.exp(-(dx * dx + dy * dy) / (2 * r * r))
           end
-          bytes[y * @fw + x] = v > 255 ? 255 : v.to_i
+          bytes[y * fw + x] = v > 255 ? 255 : v.to_i
         end
       end
-      @fertility_bytes = bytes.pack("C*")
-      @world.fertility = @fertility_bytes
+      bytes.pack("C*")
     end
 
     attr_reader :fertility_bytes, :slot_species, :slot_alive, :slot_gen
