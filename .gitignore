@@ -34,3 +34,4 @@ Thumbs.db
 /crash-*
 /leak-*
 /timeout-*
+/tmp-logs/

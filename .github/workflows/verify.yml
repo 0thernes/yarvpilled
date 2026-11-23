@@ -139,3 +139,18 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.85.1
       - working-directory: ext/yarvpilled_rust
         run: cargo test --features proof-check
+
+  cbmc:
+    name: CBMC proofs of the C kernel + exhaustive lattice check
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - uses: dtolnay/rust-toolchain@1.85.1
+      - run: sudo apt-get update && sudo apt-get install -y cbmc
+      - run: formal/cbmc/check.sh 1500
+      - run: formal/cbmc/lattice.sh

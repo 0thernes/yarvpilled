@@ -142,6 +142,7 @@ module Yarvpilled
       gf = v.("docs/verification/genome_fuzz.json")
       mu = v.("docs/verification/mutation.json")
       sa = v.("docs/verification/sanitize.json")
+      cb = v.("docs/verification/cbmc.json")
       cases = Dir[File.join(ROOT, "test/test_*.rb")].sum { File.read(_1).scan(/Prop\.check\("[^"]+", cases: ([\d_]+)\)/).sum { |(n)| n.delete("_").to_i } }
       thms = Dir[File.join(ROOT, "formal/lean/Yarvpilled/*.lean")].sum { File.read(_1).scan(/^theorem /).size }
       kani = File.read(File.join(ROOT, "ext/yarvpilled_rust/src/proofs.rs")).scan(/kani::proof\)\]/).size
@@ -154,6 +155,11 @@ module Yarvpilled
       out << "| kernel fuzzer | #{int(kf[:execs])} execs in #{int(kf[:seconds])} s, #{kf[:crashes_after_fix]} crashes after fix (#{kf[:findings].size} finding fixed) | docs/verification/kernel_fuzz.json |\n" if kf
       out << "| genome fuzzer | #{int(gf[:candidates])} genomes in #{int(gf[:seconds])} s, #{gf[:findings].size} findings | docs/verification/genome_fuzz.json |\n" if gf
       out << "| mutation score | #{format('%.1f%%', mu[:score] * 100)} (#{mu[:killed]}/#{mu[:mutants_run]} mutants killed) | docs/verification/mutation.json |\n" if mu
+      if cb
+        hs = cb[:harnesses]
+        ok = hs.count { _1[:verdict] == "VERIFIED" }
+        out << "| CBMC harnesses on the C kernel | #{ok}/#{hs.size} verified#{hs.size == ok ? '' : " (#{hs.reject { _1[:verdict] == 'VERIFIED' }.map { "#{_1[:harness]}: #{_1[:verdict]}" }.join(', ')})"} | docs/verification/cbmc.json |\n"
+      end
       out << "| ASan + UBSan test run | #{sa[:runs]} tests, #{sa[:failures]} failures, #{sa[:sanitizer_reports]} sanitizer reports | docs/verification/sanitize.json |\n" if sa
       out
     end

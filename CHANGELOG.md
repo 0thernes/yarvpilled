@@ -6,6 +6,59 @@ and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-22
+
+A 14-layer verification ladder: every attempt we could make to prove this project wrong, with
+the recorded result of each. Status per layer: [docs/verification.md](docs/verification.md).
+
+### Added
+- **Claims ledger** ([CLAIMS.md](CLAIMS.md)): every README claim has an ID, the command that
+  produces it and the test that fails if it breaks. README numbers live in generated blocks
+  (`tools/claims.rb`); `test_claims.rb` fails on drift and recomputes key numbers independently.
+- **Pre-registered statistics**: the confirmatory selection-vs-drift run (n = 20 per arm, seeds
+  201-220) was committed as a plan before it ran; H1-H5 supported (Holm-corrected permutation
+  tests, bootstrap CIs, Cohen's d). `test_claims.rb` checks in git that the plan predates the data.
+- **Lean 4 spec** (`formal/lean`, 31 theorems, no `sorry`) of the integer step, plus an
+  executable mirror differential-tested against every backend (1,500 scenarios).
+- **Kani harnesses** (7) for the Rust kernel; the same bodies run as 20,000-case randomized
+  tests on stable Rust (`cargo test --features proof-check`). Kani itself runs in CI only.
+- **CBMC harnesses** (`formal/cbmc`) on the reference C kernel, included verbatim: food-index
+  wrap, torus wrap, short-way delta, the crowd scan and a whole `yp_c_act` tick, with memory,
+  signed-overflow, float-conversion, overflow and NaN checks, plus a vacuity guard.
+- **Exhaustive lattice check** (`formal/cbmc/lattice.sh`): 5,308,416 two-creature ticks on the
+  smallest legal world under ASan + UBSan, asm crowd scan vs C and Rust tick vs C, bit for bit.
+- **Property-based tests** (stdlib-only generator), a **differential** suite against a
+  deliberately simple O(n^2) reference stepper, **negative tests** (hostile worlds, genomes,
+  CLI args) and edge-case tests.
+- **Fuzzing**: a libFuzzer differential kernel fuzzer (C vs asm vs Rust) under ASan + UBSan,
+  a time-bounded genome fuzzer, and a minimized committed corpus.
+- **Sanitizers**: `rake sanitize` runs the whole Ruby suite against an ASan + UBSan build of
+  the C extension.
+- **Mutation testing**: `tools/mutate.rb`, a homegrown runner over the world, genome grammar,
+  statistics and digest code; score and every survivor in `docs/verification/mutation.json`.
+- **Reproducibility**: pinned toolchains (`.ruby-version`, `rust-toolchain.toml`,
+  `lean-toolchain`), `tools/reproduce.rb` (`just reproduce`) re-derives every deterministic
+  headline number from a clean build.
+- **Replication**: [REPLICATION.md](REPLICATION.md), an issue form, `just replicate`, and a
+  `replicate` workflow on Linux, macOS and Windows runners.
+- **Provenance**: the release workflow writes `SHA256SUMS` and attests build provenance;
+  how to verify: [docs/provenance.md](docs/provenance.md).
+- [LIMITATIONS.md](LIMITATIONS.md), including "what would prove us wrong".
+- `verify.yml`: the heavy jobs (Kani, fuzzing, sanitizers, mutation, CBMC), manual or
+  scheduled and informational only. `docs/verification/PROGRESS.md` logs the work.
+
+### Changed
+- Benchmarks capture hardware and toolchain and record a correctness digest next to every
+  timing; trig comes from a committed bit-exact table instead of libm.
+- Strict genome grammar: genomes outside it raise `InvalidGenome` before rendering or compiling.
+
+### Fixed
+- Integer overflow in metabolism for extreme costs (found by the Kani/proof-check harness);
+  now computed in 64 bits. Recorded numbers are unchanged.
+- Worlds with fewer than 3 grid cells per axis broke the torus (found by the kernel fuzzer);
+  `World.new` now rejects them, and NaN, infinite or huge sizes, bad food cells and capacities.
+- `spawn` with NaN or far-away coordinates created a creature off the torus; now an ArgumentError.
+
 ## [0.3.0] - 2026-11-22
 
 ### Added
@@ -82,7 +135,8 @@ and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Worked around a YJIT 3.4.7 panic on fixed-arity cfuncs with more than 5 arguments by exposing
   those C entry points as variadic.
 
-[Unreleased]: https://github.com/0thernes/yarvpilled/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/0thernes/yarvpilled/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/0thernes/yarvpilled/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/0thernes/yarvpilled/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/0thernes/yarvpilled/releases/tag/v0.2.0
 [0.1.0]: https://github.com/0thernes/yarvpilled/commit/39effb6f014d78b6e0006b374264b98f3bcb5b61

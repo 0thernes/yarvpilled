@@ -103,3 +103,8 @@ prove:
 # randomized runs of the Kani harness bodies (stable Rust); `cargo kani` needs Kani installed
 proof-check:
     cd ext/yarvpilled_rust && cargo test --features proof-check
+
+# CBMC bounded proofs of the C kernel (needs cbmc), then the exhaustive lattice check
+cbmc:
+    formal/cbmc/check.sh
+    formal/cbmc/lattice.sh
