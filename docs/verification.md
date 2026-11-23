@@ -11,7 +11,7 @@ scheduled (see `.github/workflows/verify.yml`).
 | claim IDs mapped to commands/tests | 25 | CLAIMS.md |
 | property-based cases per test run | 7,350 (x PROP_SCALE) | test/test_*.rb `Prop.check` |
 | Lean theorems proved (no sorry) | 31 | formal/lean, `./check.sh` |
-| Kani harnesses (randomized stable-Rust runs: 20,000 each) | 7 | ext/yarvpilled_rust/src/proofs.rs |
+| Kani harnesses (Kani itself runs in CI only; locally each body ran as 20,000 randomized stable-Rust cases) | 7 | ext/yarvpilled_rust/src/proofs.rs |
 | kernel fuzzer | 4,321,930 execs in 1,232 s, 0 crashes after fix (1 finding fixed) | docs/verification/kernel_fuzz.json |
 | genome fuzzer | 1,940,343 genomes in 600 s, 0 findings | docs/verification/genome_fuzz.json |
 | mutation score | 88.5% (392/443 mutants killed) | docs/verification/mutation.json |
@@ -20,22 +20,26 @@ scheduled (see `.github/workflows/verify.yml`).
 | ASan + UBSan test run | 50 tests, 0 failures, 0 sanitizer reports | docs/verification/sanitize.json |
 <!-- /generated:verification-evidence -->
 
-| # | layer | status | how to run | evidence |
-|---|---|---|---|---|
-| 1 | Reproducible builds and numbers | done | `just reproduce` (or `rake reproduce`) | `.ruby-version` 3.4.7, `rust-toolchain.toml` 1.85.1, `formal/lean/lean-toolchain` v4.35.0; no gems, so no Gemfile.lock. `tools/reproduce.rb` re-derives every deterministic headline number from a clean build: 15/15 bit-for-bit on the box (Ruby 3.4.7) |
-| 2 | Claims map | done | `ruby tools/claims.rb` | [CLAIMS.md](../CLAIMS.md): claim IDs → command → test. README numbers live in generated blocks; `test_claims.rb` fails on drift, and recomputes some numbers independently of the generator |
-| 3 | Falsifiable + negative tests | done | `rake test` | each claim ID names a test that fails if the claim breaks; `test_negative.rb` rejects bad worlds, spawns, fertility maps, genomes (22 hostile shapes) and CLI args (exit 2) |
-| 4 | Property-based tests | done | `rake test` (`PROP_SCALE=10` for a soak) | stdlib-only generator (`test/support/prop.rb`), edge-biased, every failure prints a one-line repro. Energy accounting, bounds on every backend, determinism, mutation chains, junk genomes |
-| 5 | Differential testing | done | `ruby -Itest test/test_differential.rb` | C vs asm vs Rust vs Ruby vs a deliberately simple O(n²) reference stepper (`test/support/reference_world.rb`, no grid, written from the rules) on 300 random worlds per run, compared after every tick; plus `formal/cbmc/lattice.sh`: every placement of two creatures on a 3-unit lattice x every action pair (5,308,416 ticks), asm crowd scan vs C and Rust tick vs C, bit for bit |
-| 6 | Mutation testing | done | `ruby tools/mutate.rb` | homegrown runner: operator/comparison/literal/boolean mutants of the world, genome grammar, statistics and digest code, one at a time, against their tests. Score and every survivor in `docs/verification/mutation.json` |
-| 7 | Fuzzing + sanitizers | done | `fuzz/run.sh 1200`, `ruby tools/genome_fuzz.rb --seconds=600`, `RECORD=1 rake sanitize` | libFuzzer differential kernel fuzzer under ASan+UBSan (found and fixed one spec gap, then 0 crashes); genome fuzzer; the whole Ruby suite against an ASan+UBSan build of the C extension; the 5.3M-tick lattice check also runs under ASan+UBSan |
-| 8 | Static checks | done | `just lint` | `-Wall -Wextra` clean (gcc 14), `cargo clippy --all-targets --features proof-check -D warnings` clean, `ruby -w` clean over the whole test suite. CI job `static` is informational |
-| 9 | Formal methods | partial | `formal/lean/check.sh`; `formal/cbmc/check.sh`; `cargo kani` (CI) | Lean 4: theorems about the integer step, no sorry, executable mirror differential-tested against every backend. CBMC 6.6: bounded proofs on the shipping C kernel (memory safety, signed overflow, float conversion/overflow/NaN) for the food-index wrap, torus wrap and short-way delta over all finite doubles, and the crowd scan and a whole tick on a coarse position lattice ([formal/cbmc/README.md](../formal/cbmc/README.md)), with a vacuity guard. Kani: 7 harnesses; **not run on the dev box** (no disk for the Kani toolchain), run by the manual/scheduled `kani` CI job; the same harness bodies run as 20,000-case randomized tests on stable Rust |
-| 10 | Honest benchmarks | done | `rake bench` | hardware and toolchain captured in `docs/bench.json`; a correctness checksum/digest next to every timing; median (min-max) of 5 fresh processes; losses kept (asm doesn't beat gcc by much; the previous run is kept as `docs/bench_v0.2.0.md`); verdict is generated and says "tied" only when the gap is below the noise |
-| 11 | Statistics | done | `rake control` | pre-registered ([preregistration.md](preregistration.md), committed before the data), n = 20 per arm, Monte Carlo permutation test (100k), Holm, bootstrap CIs (10k) for the difference and Cohen's d; `test_stats.rb` checks the statistics against hand values and a brute-force oracle |
-| 12 | Provenance | done (on next release) | push a `v*` tag | `release.yml` builds the gem and source archive, writes `SHA256SUMS`, and attests build provenance with `actions/attest-build-provenance`. How to verify: [provenance.md](provenance.md) |
-| 13 | Limitations | done | read it | [LIMITATIONS.md](../LIMITATIONS.md), including "what would prove us wrong" |
-| 14 | Independent replication | started | `just replicate` | [REPLICATION.md](../REPLICATION.md): one-command protocol, issue form, and the `replicate` CI workflow (Linux/macOS/Windows runners). First entries are this box; CI-runner entries are pending until the workflow runs on GitHub |
+Status key: **verified** = run on the dev box (Linux x86-64, Ruby 3.4.7) with the recorded
+result shown; **partial** = some of the layer ran, the rest is named with the reason;
+**not run here** = wired up, but it has not produced a result yet.
+
+| # | layer | status | why this status | how to run | evidence |
+|---|---|---|---|---|---|
+| 1 | Reproducible builds and numbers | verified | `tools/reproduce.rb` re-derived every deterministic headline number from a clean build on the box: 15/15 bit for bit (c, asm, rust, ruby worlds), and 9/9 with `YARVPILLED_PURE=1` | `just reproduce` (or `rake reproduce`) | [docs/replications/box-ruby34.json](replications/box-ruby34.json), [box-ruby34-pure.json](replications/box-ruby34-pure.json); pins: `.ruby-version` 3.4.7, `rust-toolchain.toml` 1.85.1, `formal/lean/lean-toolchain` v4.35.0; no gems, so no Gemfile.lock |
+| 2 | Claims map | verified | `test_claims.rb` passes: every claim ID resolves, generated blocks match the data, key numbers recomputed independently | `ruby tools/claims.rb` | [CLAIMS.md](../CLAIMS.md), `test/test_claims.rb` |
+| 3 | Falsifiable + negative tests | verified | part of the green `rake test` (59 runs, 0 failures) | `rake test` | `test/test_negative.rb`: bad worlds, spawns, fertility maps, 22 hostile genome shapes, CLI args (exit 2) |
+| 4 | Property-based tests | verified | part of the green `rake test`; 7,350 generated cases per run at the default scale | `rake test` (`PROP_SCALE=10` for a soak) | `test/support/prop.rb` (stdlib-only, edge-biased, one-line repro per failure); energy accounting, bounds on every backend, determinism, mutation chains, junk genomes |
+| 5 | Differential testing | verified | 300 random worlds per test run vs a simple O(n²) reference stepper, plus the exhaustive lattice run (0 failures) | `ruby -Itest test/test_differential.rb`; `formal/cbmc/lattice.sh` | `test/support/reference_world.rb`; [lattice.json](verification/lattice.json): every placement of two creatures on a 3-unit lattice x every action pair (5,308,416 ticks), asm crowd vs C and Rust tick vs C, bit for bit |
+| 6 | Mutation testing | partial | ran on the Ruby side only (world port, genome grammar, statistics, digest): 392/443 killed (88.5%; 4 of the kills are timeouts), 51 survivors listed; the C, asm and Rust kernels are not mutated (covered by differential tests and the fuzzer) | `ruby tools/mutate.rb` | [mutation.json](verification/mutation.json) (per target: world_ruby 227/270, genome 84/86, control 79/85, digest 2/2) |
+| 7 | Fuzzing + sanitizers | verified | kernel fuzzer 4,321,930 execs in 1,232 s with 0 crashes after its one fix; genome fuzzer 1,940,343 genomes in 600 s, 0 findings; ASan+UBSan suite 50 tests, 0 reports. Coverage instrumentation is on the C kernel only | `fuzz/run.sh 1200`, `ruby tools/genome_fuzz.rb --seconds=600`, `RECORD=1 rake sanitize` | [kernel_fuzz.json](verification/kernel_fuzz.json), [genome_fuzz.json](verification/genome_fuzz.json), [sanitize.json](verification/sanitize.json) |
+| 8 | Static checks | verified | `-Wall -Wextra` clean (gcc 14), `cargo clippy --all-targets --features proof-check -D warnings` clean, `ruby -w` clean over the suite | `just lint` | [lint.txt](verification/lint.txt); CI job `static` is informational |
+| 9 | Formal methods | partial | **Lean 4: verified**, 31 theorems, no `sorry`. **CBMC 6.6: 5 of 6 harnesses verified**; `h_act_tick_safe` (a whole tick) never finished on the box: ACT_CAP=1 killed (exit 137) after 436 s, ACT_CAP=2 stopped (exit 15) after 9 s. The crowd harness is verified only on a 24-unit position lattice (215 s); a 12-unit lattice timed out (exit 124 after 561 s) and fully symbolic positions timed out at 600 s. **Kani: not run here**: its toolchain does not fit on the box's disk (about 1 GB free); the 7 harnesses run only in the manual/scheduled `kani` CI job, and locally the same bodies ran as 20,000-case randomized tests on stable Rust | `formal/lean/check.sh`; `formal/cbmc/check.sh`; `cargo kani` (CI) | [lean_check.txt](verification/lean_check.txt), [cbmc.json](verification/cbmc.json), [cbmc_runs.txt](verification/cbmc_runs.txt), [formal/cbmc/README.md](../formal/cbmc/README.md), `ext/yarvpilled_rust/src/proofs.rs` |
+| 10 | Honest benchmarks | verified | recorded on the box with hardware and toolchain captured, a correctness checksum/digest next to every timing, median (min-max) of 5 fresh processes, losses kept | `rake bench` | [bench.json](bench.json), [bench.md](bench.md), previous run kept as [bench_v0.2.0.md](bench_v0.2.0.md) |
+| 11 | Statistics | verified | pre-registered ([preregistration.md](preregistration.md), committed before the data), n = 20 per arm, permutation tests (100k) with Holm, bootstrap CIs (10k), Cohen's d; H1-H5 supported; `test_stats.rb` checks the statistics against hand values and a brute-force oracle | `rake control` | [control.json](control.json), [control.md](control.md) |
+| 12 | Provenance | not run here | `release.yml` builds the gem and source archive, writes `SHA256SUMS` and attests build provenance, but it only runs on GitHub when a `v*` tag is pushed; no release has been built by it yet | push a `v*` tag | `.github/workflows/release.yml`, [provenance.md](provenance.md) |
+| 13 | Limitations | verified | written and kept in step with this table, including "what would prove us wrong" | read it | [LIMITATIONS.md](../LIMITATIONS.md) |
+| 14 | Independent replication | partial | only the dev box has replicated (same hardware as the original runs, so this shows reproducibility, not portability); the Linux/macOS/Windows CI-runner replications have not run yet (they need the `Replicate` workflow on GitHub), and no outside replication exists | `just replicate` | [REPLICATION.md](../REPLICATION.md), [docs/replications/](replications/) |
 
 ## Findings so far
 
@@ -60,16 +64,25 @@ the spec and listed in [LIMITATIONS.md](../LIMITATIONS.md).
 
 ## What is not verified
 
-- Kani was not run locally (see layer 9). The harnesses compile under `cfg(kani)` only in CI.
-- The CI-runner replications on macOS and Windows have not run yet (they need a push).
+- **Kani was not run here** (layer 9): its toolchain needs more disk than the box has. The
+  harnesses compile under `cfg(kani)` only in CI; locally only their randomized stable-Rust
+  twins ran.
+- **CBMC did not prove a whole tick.** `h_act_tick_safe` was killed before it finished (exit
+  137 after 436 s at ACT_CAP=1; exit 15 after 9 s at ACT_CAP=2). The whole tick is covered by
+  exhaustive execution on the 3-unit lattice (`lattice.sh`), the fuzzer and differential
+  tests, not by proof.
+- CBMC proves the crowd scan only on the minimal 72x72 world, with 2 creatures on a 24-unit
+  position lattice (cell seams). The 12-unit lattice (exit 124 after 561 s) and fully symbolic
+  positions (600 s, about 10 GB RAM) timed out. Rust and asm are not model-checked directly
+  (Kani covers Rust helpers in CI; asm is checked differentially).
+- The CBMC evidence was assembled from logged runs plus a re-run of the four fast harnesses
+  and the vacuity guard, not from one uninterrupted `RECORD=1 formal/cbmc/check.sh` run.
+- The CI-runner replications on Linux, macOS and Windows have not run yet (they need a push).
+- Provenance attestation has not run yet (it needs a pushed `v*` tag on GitHub).
 - Mutation testing samples at most 120 mutants per target, and only the files listed in
   `tools/mutate.rb`. The C, asm and Rust kernels are covered by differential tests and the
-  fuzzer, not by mutation testing.
+  fuzzer, not by mutation testing. 51 mutants survived; they are listed in `mutation.json` but
+  not triaged (some may be equivalent, some may be test gaps).
 - Coverage-guided fuzzing instruments only the C kernel and the harness; asm and Rust are
   checked differentially.
 - The Lean model covers integer bookkeeping only (see `formal/lean/README.md`).
-- CBMC proves the whole-tick and crowd harnesses only on the minimal 72x72 world, on a coarse
-  position lattice (cell seams), and the whole tick with one creature slot: fully symbolic
-  doubles through the collision math ran out of the box's memory. The finer 3-unit lattice
-  with two creatures is covered by exhaustive execution, not proof. Rust and asm are not
-  model-checked directly (Kani covers Rust helpers in CI; asm is checked differentially).

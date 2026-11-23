@@ -37,7 +37,7 @@ rc 137 436s
 rc 15 9s
 EXIT
 
-## re-run 17:45 PST: fast harnesses + vacuity guard
+## re-run 17:36 PST: fast harnesses + vacuity guard
 h_food_index_wrap rc=0 0s ** 0 of 1459 failed (1 iterations) VERIFICATION SUCCESSFUL
 h_food_index_default_world rc=0 0s ** 0 of 1459 failed (1 iterations) VERIFICATION SUCCESSFUL
 h_wrapd_into_torus rc=0 1s ** 0 of 1459 failed (1 iterations) VERIFICATION SUCCESSFUL

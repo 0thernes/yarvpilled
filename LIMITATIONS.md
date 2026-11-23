@@ -24,11 +24,22 @@ is as welcome as a replication ([REPLICATION.md](REPLICATION.md)).
 - **Floating point is checked by testing, not proof.** The Lean 4 spec covers the integer
   bookkeeping (food, energy, sensors clamps, slots). Positions, trig, crowding and collisions
   use IEEE-754 doubles and are covered only by differential tests and fuzzing.
-- **Kani was not run on the development box** (not enough disk for its toolchain). The 7
-  harnesses run in the manual/scheduled `kani` CI job; locally, the same bodies ran as
-  20,000-case randomized tests on stable Rust.
+- **Kani was not run on the development box** (not enough disk for its toolchain: about 1 GB
+  free). The 7 harnesses run only in the manual/scheduled `kani` CI job and have no recorded
+  result yet; locally, the same bodies ran as 20,000-case randomized tests on stable Rust,
+  which samples inputs and proves nothing.
+- **CBMC proved 5 of 6 harnesses, not a whole tick.** `h_act_tick_safe` never finished on the
+  box (ACT_CAP=1 killed with exit 137 after 436 s; ACT_CAP=2 stopped with exit 15 after 9 s).
+  The crowd-scan proof holds only on a 72x72 world with 2 creatures on a 24-unit position
+  lattice (215 s); a 12-unit lattice timed out (exit 124 after 561 s) and fully symbolic
+  positions timed out at 600 s. Finer placements are covered by exhaustive execution
+  (`formal/cbmc/lattice.sh`, 5,308,416 ticks), which is testing, not proof. Recorded in
+  [docs/verification/cbmc.json](docs/verification/cbmc.json).
 - **Cross-platform bit-identity is tested on Linux x86-64 only so far.** macOS/arm64 and
-  Windows have CI jobs and a replication workflow, but no recorded replication yet.
+  Windows have CI jobs and a replication workflow, but no recorded replication yet. The only
+  replications are from the dev box, the same hardware as the original runs.
+- **Provenance is wired up but unexercised.** The release workflow's checksums and build
+  attestation run only when a `v*` tag reaches GitHub.
 - **One libm dependence remains.** Direction vectors come from literal IEEE-754 tables, but
   `Simulation#fertility_bytes` still calls `Math.cos`, `Math.sin` and `Math.exp` once at
   startup. A libm that rounds differently (another OS, another libc) could produce a different
@@ -39,7 +50,8 @@ is as welcome as a replication ([REPLICATION.md](REPLICATION.md)).
   the crowd and collision scans. All backends and the reference stepper agree, so it is part
   of the spec; fixing it would change every recorded result.
 - **Mutation testing covers the Ruby side** (world, genome grammar, statistics, digest),
-  sampled at up to 120 mutants per target. The C, asm and Rust kernels are covered by the
+  sampled at up to 120 mutants per target: 392/443 killed (88.5%), 51 survivors listed but
+  not triaged. The C, asm and Rust kernels are covered by the
   differential tests and the fuzzer instead.
 - **ISeq binaries are Ruby-version-specific.** They are never persisted across runs.
 - **The asm backend is x86-64 SysV only** (Linux/BSD); elsewhere `:asm` uses the C scan. The

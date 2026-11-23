@@ -152,7 +152,7 @@ module Yarvpilled
       out << "| claim IDs mapped to commands/tests | #{claims} | CLAIMS.md |\n"
       out << "| property-based cases per test run | #{int(cases)} (x PROP_SCALE) | test/test_*.rb `Prop.check` |\n"
       out << "| Lean theorems proved (no sorry) | #{thms} | formal/lean, `./check.sh` |\n"
-      out << "| Kani harnesses (randomized stable-Rust runs: 20,000 each) | #{kani} | ext/yarvpilled_rust/src/proofs.rs |\n"
+      out << "| Kani harnesses (Kani itself runs in CI only; locally each body ran as 20,000 randomized stable-Rust cases) | #{kani} | ext/yarvpilled_rust/src/proofs.rs |\n"
       out << "| kernel fuzzer | #{int(kf[:execs])} execs in #{int(kf[:seconds])} s, #{kf[:crashes_after_fix]} crashes after fix (#{kf[:findings].size} finding fixed) | docs/verification/kernel_fuzz.json |\n" if kf
       out << "| genome fuzzer | #{int(gf[:candidates])} genomes in #{int(gf[:seconds])} s, #{gf[:findings].size} findings | docs/verification/genome_fuzz.json |\n" if gf
       out << "| mutation score | #{format('%.1f%%', mu[:score] * 100)} (#{mu[:killed]}/#{mu[:mutants_run]} mutants killed) | docs/verification/mutation.json |\n" if mu

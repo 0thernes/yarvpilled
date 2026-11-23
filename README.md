@@ -296,9 +296,15 @@ proofs cover the integer bookkeeping, not the floating-point geometry. "Consciou
 A 14-layer ladder of attempts to prove this project wrong: pinned toolchains and a one-command
 `just reproduce`, claim IDs, negative and property-based tests, differential testing against a
 slow reference stepper, mutation testing, fuzzing under ASan/UBSan, a Lean 4 spec with proved
-invariants, Kani harnesses, pre-registered statistics, release provenance, and an open call for
-replications. Status per layer: [docs/verification.md](docs/verification.md). Replicate it:
-[REPLICATION.md](REPLICATION.md).
+invariants, CBMC proofs on the C kernel, Kani harnesses, pre-registered statistics, release
+provenance, and an open call for replications.
+
+Status in v0.4.0, from the recorded runs: 10 layers verified on the dev box; 3 partial
+(mutation testing covers the Ruby side only, 88.5%; formal methods: Lean 31/31 theorems and
+CBMC 5/6 harnesses, but the whole-tick CBMC harness did not finish and Kani runs in CI only;
+replication so far comes from the dev box alone); 1 not run yet (release provenance needs a
+pushed tag on GitHub). Per-layer detail and reasons: [docs/verification.md](docs/verification.md).
+Replicate it: [REPLICATION.md](REPLICATION.md).
 
 ## Found along the way
 

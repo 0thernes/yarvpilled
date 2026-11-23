@@ -1,0 +1,235 @@
+{
+  "replicator": "dev box (author)",
+  "date_utc": "2026-11-23T01:39:30Z",
+  "yarvpilled": "0.4.0",
+  "git_commit": "e1db7d9da961",
+  "platform": "x86_64-linux",
+  "os": "linux",
+  "cpu": "x86_64",
+  "cpus": 8,
+  "ruby": "ruby 3.4.7 (2025-10-08 revision 7a5688e2a2) +YJIT +PRISM [x86_64-linux]",
+  "yjit": true,
+  "worlds": [
+    "c",
+    "asm",
+    "rust",
+    "ruby"
+  ],
+  "quick": false,
+  "checks": [
+    {
+      "id": "C-BENCH-1",
+      "check": "full-sim checksum, seed 11, 2000 ticks, world=c",
+      "expected": "557-9-178-1263170-160",
+      "actual": "557-9-178-1263170-160",
+      "ok": true
+    },
+    {
+      "id": "C-BENCH-1",
+      "check": "full-sim checksum, seed 11, 2000 ticks, world=asm",
+      "expected": "557-9-178-1263170-160",
+      "actual": "557-9-178-1263170-160",
+      "ok": true
+    },
+    {
+      "id": "C-BENCH-1",
+      "check": "full-sim checksum, seed 11, 2000 ticks, world=rust",
+      "expected": "557-9-178-1263170-160",
+      "actual": "557-9-178-1263170-160",
+      "ok": true
+    },
+    {
+      "id": "C-BENCH-1",
+      "check": "full-sim checksum, seed 11, 2000 ticks, world=ruby",
+      "expected": "557-9-178-1263170-160",
+      "actual": "557-9-178-1263170-160",
+      "ok": true
+    },
+    {
+      "id": "C-BENCH-2",
+      "check": "world-loop state digest after 600 ticks, world=c",
+      "expected": "699cb7c5dfcb0295",
+      "actual": "699cb7c5dfcb0295",
+      "ok": true
+    },
+    {
+      "id": "C-BENCH-2",
+      "check": "world-loop state digest after 600 ticks, world=asm",
+      "expected": "699cb7c5dfcb0295",
+      "actual": "699cb7c5dfcb0295",
+      "ok": true
+    },
+    {
+      "id": "C-BENCH-2",
+      "check": "world-loop state digest after 600 ticks, world=rust",
+      "expected": "699cb7c5dfcb0295",
+      "actual": "699cb7c5dfcb0295",
+      "ok": true
+    },
+    {
+      "id": "C-BENCH-2",
+      "check": "world-loop state digest after 600 ticks, world=ruby",
+      "expected": "699cb7c5dfcb0295",
+      "actual": "699cb7c5dfcb0295",
+      "ok": true
+    },
+    {
+      "id": "C-CTRL-1",
+      "check": "control replicate seed 201 selection: all metrics",
+      "expected": {
+        "fitness": 4.5211584854368905,
+        "survival": 0.58046875,
+        "species_entropy_bits": 5.224797609027166,
+        "opcode_entropy_bits": 3.369711834896768,
+        "mean_bytecode_len": 34.70040485829959,
+        "final_pop": 247,
+        "max_gen": 14,
+        "births": 1447
+      },
+      "actual": {
+        "fitness": 4.5211584854368905,
+        "survival": 0.58046875,
+        "species_entropy_bits": 5.224797609027166,
+        "opcode_entropy_bits": 3.369711834896768,
+        "mean_bytecode_len": 34.70040485829959,
+        "final_pop": 247,
+        "max_gen": 14,
+        "births": 1447
+      },
+      "ok": true
+    },
+    {
+      "id": "C-CTRL-1",
+      "check": "control replicate seed 201 drift: all metrics",
+      "expected": {
+        "fitness": 4.591917013257321,
+        "survival": 0.6,
+        "species_entropy_bits": 6.160839877839964,
+        "opcode_entropy_bits": 3.624818910449419,
+        "mean_bytecode_len": 50.81333333333333,
+        "final_pop": 150,
+        "max_gen": 11,
+        "births": 794
+      },
+      "actual": {
+        "fitness": 4.591917013257321,
+        "survival": 0.6,
+        "species_entropy_bits": 6.160839877839964,
+        "opcode_entropy_bits": 3.624818910449419,
+        "mean_bytecode_len": 50.81333333333333,
+        "final_pop": 150,
+        "max_gen": 11,
+        "births": 794
+      },
+      "ok": true
+    },
+    {
+      "id": "C-CTRL-1",
+      "check": "control replicate seed 202 selection: all metrics",
+      "expected": {
+        "fitness": 5.082529527747345,
+        "survival": 0.7791176470588235,
+        "species_entropy_bits": 5.618313976374059,
+        "opcode_entropy_bits": 3.284922841246277,
+        "mean_bytecode_len": 33.74647887323944,
+        "final_pop": 213,
+        "max_gen": 18,
+        "births": 1394
+      },
+      "actual": {
+        "fitness": 5.082529527747345,
+        "survival": 0.7791176470588235,
+        "species_entropy_bits": 5.618313976374059,
+        "opcode_entropy_bits": 3.284922841246277,
+        "mean_bytecode_len": 33.74647887323944,
+        "final_pop": 213,
+        "max_gen": 18,
+        "births": 1394
+      },
+      "ok": true
+    },
+    {
+      "id": "C-CTRL-1",
+      "check": "control replicate seed 202 drift: all metrics",
+      "expected": {
+        "fitness": 4.6110709787587885,
+        "survival": 0.6142857142857142,
+        "species_entropy_bits": 5.960475291907006,
+        "opcode_entropy_bits": 3.6468419248534483,
+        "mean_bytecode_len": 70.67924528301887,
+        "final_pop": 159,
+        "max_gen": 12,
+        "births": 793
+      },
+      "actual": {
+        "fitness": 4.6110709787587885,
+        "survival": 0.6142857142857142,
+        "species_entropy_bits": 5.960475291907006,
+        "opcode_entropy_bits": 3.6468419248534483,
+        "mean_bytecode_len": 70.67924528301887,
+        "final_pop": 159,
+        "max_gen": 12,
+        "births": 793
+      },
+      "ok": true
+    },
+    {
+      "id": "C-CTRL-1",
+      "check": "control replicate seed 203 selection: all metrics",
+      "expected": {
+        "fitness": 4.552543050867691,
+        "survival": 0.5879237288135594,
+        "species_entropy_bits": 4.9756561463047975,
+        "opcode_entropy_bits": 3.309757001828446,
+        "mean_bytecode_len": 33.63235294117647,
+        "final_pop": 204,
+        "max_gen": 16,
+        "births": 1402
+      },
+      "actual": {
+        "fitness": 4.552543050867691,
+        "survival": 0.5879237288135594,
+        "species_entropy_bits": 4.9756561463047975,
+        "opcode_entropy_bits": 3.309757001828446,
+        "mean_bytecode_len": 33.63235294117647,
+        "final_pop": 204,
+        "max_gen": 16,
+        "births": 1402
+      },
+      "ok": true
+    },
+    {
+      "id": "C-CTRL-1",
+      "check": "control replicate seed 203 drift: all metrics",
+      "expected": {
+        "fitness": 4.892644205950946,
+        "survival": 0.6369047619047619,
+        "species_entropy_bits": 6.231391771995425,
+        "opcode_entropy_bits": 3.6693078010911266,
+        "mean_bytecode_len": 51.36206896551724,
+        "final_pop": 174,
+        "max_gen": 13,
+        "births": 798
+      },
+      "actual": {
+        "fitness": 4.892644205950946,
+        "survival": 0.6369047619047619,
+        "species_entropy_bits": 6.231391771995425,
+        "opcode_entropy_bits": 3.6693078010911266,
+        "mean_bytecode_len": 51.36206896551724,
+        "final_pop": 174,
+        "max_gen": 13,
+        "births": 798
+      },
+      "ok": true
+    },
+    {
+      "id": "C-CTRL-2",
+      "check": "fitness permutation p recomputed from docs/control.json",
+      "expected": 0.0003999960000399996,
+      "actual": 0.0003999960000399996,
+      "ok": true
+    }
+  ],
+  "all_ok": true
+}

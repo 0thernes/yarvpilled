@@ -25,7 +25,7 @@ Times are America/Los_Angeles (PST).
 - 17:35 Act-tick harness run killed: ACT_CAP=1 exit 137 after 436 s, ACT_CAP=2 exit 15 after 9 s
   (tmp-logs/cbmc-act.log). No act-tick proof is claimed. Correction to 17:15: the logged
   LAT_STEP=12 crowd run ended with exit 124 after 561 s wall clock (tmp-logs/cbmc-crowd2.log).
-- 17:45 Final wrap-up run (no new long CBMC/Kani/fuzz/mutation runs). Re-ran the four fast CBMC
+- 17:37 Final wrap-up run (no new long CBMC/Kani/fuzz/mutation runs). Re-ran the four fast CBMC
   harnesses (VERIFIED, 0-1 s each, 1459 properties) and the vacuity guard (both weakened
   assertions FAIL as required). Recorded `docs/verification/cbmc.json` (5/6 verified,
   h_act_tick_safe KILLED) and the raw log lines in `docs/verification/cbmc_runs.txt`.
