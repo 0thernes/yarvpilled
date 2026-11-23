@@ -99,4 +99,27 @@ class TestClaims < Minitest::Test
       assert File.exist?(File.join(ROOT, f)), "CLAIMS.md cites missing #{f}"
     end
   end
+
+  # C-VER-2: recorded verification runs report what they claim. A CBMC counterexample
+  # (FAILED) is a finding and must be fixed, not recorded; a TIMEOUT is allowed but shows
+  # up in the evidence table. Sanitizer and lattice runs must have passed.
+  def test_recorded_verification_runs_passed
+    ev = ->(f) { JSON.parse(read("docs/verification/#{f}"), symbolize_names: true) }
+    if File.exist?(File.join(ROOT, "docs/verification/cbmc.json"))
+      cb = ev.("cbmc.json")
+      refute_empty cb[:harnesses]
+      assert_empty cb[:harnesses].select { _1[:verdict] == "FAILED" }, "CBMC counterexample recorded"
+      assert cb[:vacuity_guard_passed], "CBMC vacuity guard failed: a proof may be vacuous"
+      cb[:harnesses].each { |h| assert_includes read("formal/cbmc/harness.c"), "void #{h[:harness]}(void)" }
+    end
+    if File.exist?(File.join(ROOT, "docs/verification/lattice.json"))
+      la = ev.("lattice.json")
+      assert la[:passed]
+      assert_equal 0, la[:failures]
+      assert_equal 24**4 * 16, la[:cases], "lattice enumerates every placement x action pair"
+    end
+    sa = ev.("sanitize.json")
+    assert sa[:passed]
+    assert_equal 0, sa[:sanitizer_reports]
+  end
 end

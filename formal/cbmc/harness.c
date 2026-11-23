@@ -78,7 +78,8 @@ void h_tdelta_short_way(void) {
 }
 
 /* H4: one full yp_c_act tick on a minimal legal world (72x72, 3x3 food and crowd grids,
- * 2 creature slots) with arbitrary positions, headings, energies, ages, costs and
+ * ACT_CAP creature slots, default 1: with 2 slots the collision math ran CBMC out of the
+ * box's 15 GB; collisions are covered exhaustively by lattice.c) with arbitrary positions, headings, energies, ages, costs and
  * actions: no out-of-bounds access, no signed overflow, no bad float->int cast,
  * and the invariants the README states hold afterwards. */
 #define CAP 2
@@ -86,16 +87,19 @@ void h_tdelta_short_way(void) {
 #define LAT_STEP 24.0         /* {0, 24, 48} per axis: the cell seams; finer lattices are covered by lattice.c */
 #endif
 #define LAT_N ((int)(72.0 / LAT_STEP))
+#ifndef ACT_CAP
+#define ACT_CAP 1
+#endif
 void h_act_tick_safe(void) {
   load_trig();
-  double x[CAP], y[CAP];
-  int32_t heading[CAP], age[CAP], species[CAP], cost[CAP], last[CAP], actions[CAP];
-  int64_t energy[CAP], e0[CAP];
-  uint8_t alive[CAP], food[9], fert[9], facc[9];
-  int32_t ghead[9], gnext[CAP], births[CAP], deaths[CAP];
+  double x[ACT_CAP], y[ACT_CAP];
+  int32_t heading[ACT_CAP], age[ACT_CAP], species[ACT_CAP], cost[ACT_CAP], last[ACT_CAP], actions[ACT_CAP];
+  int64_t energy[ACT_CAP], e0[ACT_CAP];
+  uint8_t alive[ACT_CAP], food[9], fert[9], facc[9];
+  int32_t ghead[9], gnext[ACT_CAP], births[ACT_CAP], deaths[ACT_CAP];
   World w;
   memset(&w, 0, sizeof w);
-  w.cap = CAP; w.used = nondet_int(); __CPROVER_assume(w.used >= 0 && w.used <= CAP);
+  w.cap = ACT_CAP; w.used = nondet_int(); __CPROVER_assume(w.used >= 0 && w.used <= ACT_CAP);
   w.w = 72.0; w.h = 72.0;
   w.x = x; w.y = y; w.heading = heading; w.age = age; w.species = species; w.cost = cost;
   w.last_action = last; w.energy = energy; w.alive = alive;
@@ -103,7 +107,7 @@ void h_act_tick_safe(void) {
   w.gw = 3; w.gh = 3; w.gcell = 24; w.ghead = ghead; w.gnext = gnext;
   int64_t food0 = 0;
   for (int c = 0; c < 9; c++) { food[c] = nondet_u8(); fert[c] = nondet_u8(); facc[c] = nondet_u8(); }
-  for (int i = 0; i < CAP; i++) {
+  for (int i = 0; i < ACT_CAP; i++) {
     x[i] = lattice(LAT_N, LAT_STEP); y[i] = lattice(LAT_N, LAT_STEP);
     heading[i] = nondet_int(); __CPROVER_assume(heading[i] >= 0 && heading[i] < NDIR);
     age[i] = nondet_int(); __CPROVER_assume(age[i] >= 0 && age[i] < MAX_AGE);
@@ -115,7 +119,7 @@ void h_act_tick_safe(void) {
   }
   int64_t thresh = nondet_i64(); __CPROVER_assume(thresh > 0 && thresh < (1LL << 40));
   int32_t nb, nd;
-  yp_c_act(&w, actions, CAP, thresh, births, &nb, deaths, &nd);
+  yp_c_act(&w, actions, ACT_CAP, thresh, births, &nb, deaths, &nd);
   __CPROVER_assert(nb >= 0 && nd >= 0 && nb + nd <= w.used, "births + deaths <= used");
   for (int c = 0; c < 9; c++) __CPROVER_assert(food[c] <= FOOD_MAX, "food <= 255");
   for (int i = 0; i < w.used; i++) {

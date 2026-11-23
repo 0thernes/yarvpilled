@@ -143,6 +143,7 @@ module Yarvpilled
       mu = v.("docs/verification/mutation.json")
       sa = v.("docs/verification/sanitize.json")
       cb = v.("docs/verification/cbmc.json")
+      la = v.("docs/verification/lattice.json")
       cases = Dir[File.join(ROOT, "test/test_*.rb")].sum { File.read(_1).scan(/Prop\.check\("[^"]+", cases: ([\d_]+)\)/).sum { |(n)| n.delete("_").to_i } }
       thms = Dir[File.join(ROOT, "formal/lean/Yarvpilled/*.lean")].sum { File.read(_1).scan(/^theorem /).size }
       kani = File.read(File.join(ROOT, "ext/yarvpilled_rust/src/proofs.rs")).scan(/kani::proof\)\]/).size
@@ -160,6 +161,7 @@ module Yarvpilled
         ok = hs.count { _1[:verdict] == "VERIFIED" }
         out << "| CBMC harnesses on the C kernel | #{ok}/#{hs.size} verified#{hs.size == ok ? '' : " (#{hs.reject { _1[:verdict] == 'VERIFIED' }.map { "#{_1[:harness]}: #{_1[:verdict]}" }.join(', ')})"} | docs/verification/cbmc.json |\n"
       end
+      out << "| exhaustive lattice check (ASan + UBSan) | #{int(la[:cases])} ticks, #{int(la[:crowd_asm_vs_c])} asm-vs-C crowd scans, #{int(la[:rust_vs_c_ticks])} Rust-vs-C ticks, #{la[:failures]} failures | docs/verification/lattice.json |\n" if la
       out << "| ASan + UBSan test run | #{sa[:runs]} tests, #{sa[:failures]} failures, #{sa[:sanitizer_reports]} sanitizer reports | docs/verification/sanitize.json |\n" if sa
       out
     end

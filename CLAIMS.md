@@ -11,7 +11,7 @@ them with `rake bench` and compare shapes (ratios, rankings within noise).
 
 | ID | claim | produced by | checked by |
 |---|---|---|---|
-| C-EQ-1 | The C, asm, Rust and pure-Ruby world backends are bit-identical, step by step. | — | `test_world_equivalence.rb` (300 ticks with births), `test_differential.rb` (300 random worlds vs a slow reference stepper), `fuzz/run.sh` (C vs asm vs Rust, 4.3M worlds) |
+| C-EQ-1 | The C, asm, Rust and pure-Ruby world backends are bit-identical, step by step. | — | `test_world_equivalence.rb` (300 ticks with births), `test_differential.rb` (300 random worlds vs a slow reference stepper), `fuzz/run.sh` (C vs asm vs Rust, 4.3M worlds), `formal/cbmc/lattice.sh` (asm crowd and Rust tick vs C on every placement of a 3-unit lattice, 5.3M ticks) |
 | C-EQ-2 | The integer part of the step matches a Lean 4 model with proved invariants. | `formal/lean/Mirror.lean` | `test_formal_mirror.rb` (1500 scenarios x every backend) |
 | C-REAL-1 | Each brain is a real YARV ISeq: compile, `to_binary`, `load_from_binary`, `define_method`. | `Genome#compile!` | `test_genome.rb` (`test_seed_compiles_to_a_real_iseq_and_behaves`, `test_binary_roundtrip_is_the_genome`) |
 | C-REAL-2 | Body traits come only from the bytecode (opcode histogram, length). | `Genome#traits` | `test_genome.rb` (`test_traits_derive_only_from_bytecode`, `test_histogram_and_length_match_the_disasm`) |
@@ -29,11 +29,12 @@ them with `rake bench` and compare shapes (ratios, rankings within noise).
 | C-CTRL-2 | Selection beats drift on assay fitness and survival, purges bytecode and lowers entropy (Holm p < 0.05, n = 20 per arm). | `rake control` | `test_claims.rb` (summary stats recomputed from rows), `tools/reproduce.rb` (permutation p recomputed), `test_stats.rb` (the statistics themselves) |
 | C-CTRL-3 | The confirmatory run was pre-registered before it ran. | `docs/preregistration.md` | `test_claims.rb` (git: the pre-registration commit is an ancestor of the results commit) |
 | C-INV-1 | Energy accounting: per creature, Δenergy = take + take/2 − metabolism; takes sum to Δeaten; food is conserved up to death refunds. | — | `test_properties.rb` (`test_energy_accounting`, 1500 worlds), Lean `energy_identity_sum`, Kani `metabolize_identity_no_overflow` |
-| C-INV-2 | Positions stay on the torus, headings in 0..63, sensors in range, population ≤ capacity. | — | `test_properties.rb` (`test_bounds_hold_on_every_backend`), Lean `population_le_cap`, fuzzer range checks |
+| C-INV-2 | Positions stay on the torus, headings in 0..63, sensors in range, population ≤ capacity. | — | `test_properties.rb` (`test_bounds_hold_on_every_backend`), Lean `population_le_cap`, CBMC `h_act_tick_safe` / `h_wrapd_into_torus` / `h_food_index_*` (`formal/cbmc/check.sh`), fuzzer range checks |
 | C-INV-3 | Mutation never produces a genome its own grammar rejects; every brain returns an Integer and survives the binary round trip. | `Genome#mutate` | `test_properties.rb` (`test_mutation_chains_always_yield_valid_brains`), `tools/genome_fuzz.rb` |
 | C-NEG-1 | Bad world parameters and spawn positions are rejected with ArgumentError on every backend. | `World.new`, `#spawn` | `test_negative.rb` |
 | C-NEG-2 | Genomes outside the grammar raise InvalidGenome before rendering or compiling. | `Genome.validate!` | `test_negative.rb`, `test_properties.rb` (`test_random_trees_validate_or_reject_cleanly`), `tools/genome_fuzz.rb` |
 | C-NEG-3 | Bad CLI arguments exit 2 with a one-line usage error. | `yarv_brain.rb` | `test_negative.rb` (`test_bad_cli_args_exit_2`) |
 | C-VER-1 | The verification numbers in docs/verification.md come from recorded runs. | `fuzz/run.sh`, `tools/genome_fuzz.rb`, `tools/mutate.rb`, `RECORD=1 rake sanitize`, `formal/lean/check.sh` | `test_claims.rb` (block `verification-evidence`) |
+| C-VER-2 | The C kernel is memory-safe and overflow-free on the CBMC harness domains, and no recorded verification run hides a failure. | `formal/cbmc/check.sh`, `formal/cbmc/lattice.sh` | `test_claims.rb` (`test_recorded_verification_runs_passed`) |
 
 What these claims do **not** cover, and what would falsify them: [LIMITATIONS.md](LIMITATIONS.md).
