@@ -9,7 +9,10 @@ and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [0.4.0] - 2026-11-22
 
 A 14-layer verification ladder: every attempt we could make to prove this project wrong, with
-the recorded result of each. Status per layer: [docs/verification.md](docs/verification.md).
+the recorded result of each. On the dev box 10 layers are verified, 3 are partial (mutation
+testing, formal methods, replication) and 1 has not run yet (release provenance, which runs
+when this tag reaches GitHub). Status and reasons per layer:
+[docs/verification.md](docs/verification.md).
 
 ### Added
 - **Claims ledger** ([CLAIMS.md](CLAIMS.md)): every README claim has an ID, the command that
@@ -21,10 +24,15 @@ the recorded result of each. Status per layer: [docs/verification.md](docs/verif
 - **Lean 4 spec** (`formal/lean`, 31 theorems, no `sorry`) of the integer step, plus an
   executable mirror differential-tested against every backend (1,500 scenarios).
 - **Kani harnesses** (7) for the Rust kernel; the same bodies run as 20,000-case randomized
-  tests on stable Rust (`cargo test --features proof-check`). Kani itself runs in CI only.
-- **CBMC harnesses** (`formal/cbmc`) on the reference C kernel, included verbatim: food-index
-  wrap, torus wrap, short-way delta, the crowd scan and a whole `yp_c_act` tick, with memory,
-  signed-overflow, float-conversion, overflow and NaN checks, plus a vacuity guard.
+  tests on stable Rust (`cargo test --features proof-check`). Kani itself runs in CI only (its
+  toolchain did not fit on the dev box), so there is no recorded Kani result yet.
+- **CBMC harnesses** (`formal/cbmc`) on the reference C kernel, included verbatim, with memory,
+  signed-overflow, float-conversion, overflow and NaN checks, plus a vacuity guard. 5 of 6
+  verified on the dev box: food-index wrap, default-world food index, torus wrap and short-way
+  delta over all finite doubles, and the crowd scan on a 24-unit position lattice (215 s). The
+  whole-tick harness `h_act_tick_safe` did not finish (killed, exit 137, after 436 s), and the
+  crowd scan timed out on a 12-unit lattice (561 s) and with fully symbolic positions (600 s).
+  Recorded in `docs/verification/cbmc.json`; `check.sh` reports killed runs as KILLED.
 - **Exhaustive lattice check** (`formal/cbmc/lattice.sh`): 5,308,416 two-creature ticks on the
   smallest legal world under ASan + UBSan, asm crowd scan vs C and Rust tick vs C, bit for bit.
 - **Property-based tests** (stdlib-only generator), a **differential** suite against a
@@ -35,12 +43,14 @@ the recorded result of each. Status per layer: [docs/verification.md](docs/verif
 - **Sanitizers**: `rake sanitize` runs the whole Ruby suite against an ASan + UBSan build of
   the C extension.
 - **Mutation testing**: `tools/mutate.rb`, a homegrown runner over the world, genome grammar,
-  statistics and digest code; score and every survivor in `docs/verification/mutation.json`.
+  statistics and digest code: 392/443 mutants killed (88.5%); every survivor is listed in
+  `docs/verification/mutation.json`. The native kernels are not mutation-tested.
 - **Reproducibility**: pinned toolchains (`.ruby-version`, `rust-toolchain.toml`,
   `lean-toolchain`), `tools/reproduce.rb` (`just reproduce`) re-derives every deterministic
   headline number from a clean build.
 - **Replication**: [REPLICATION.md](REPLICATION.md), an issue form, `just replicate`, and a
-  `replicate` workflow on Linux, macOS and Windows runners.
+  `replicate` workflow on Linux, macOS and Windows runners. First reports, from the dev box
+  only: 15/15 checks bit for bit with every backend, 9/9 pure Ruby (`docs/replications/`).
 - **Provenance**: the release workflow writes `SHA256SUMS` and attests build provenance;
   how to verify: [docs/provenance.md](docs/provenance.md).
 - [LIMITATIONS.md](LIMITATIONS.md), including "what would prove us wrong".

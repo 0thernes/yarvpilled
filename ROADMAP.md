@@ -2,7 +2,11 @@
 
 Direction, not promises. A solo hobby project: things land when they're fun and honest.
 
-## Next (0.4)
+## Next (0.5)
+0.4.0 became the verification release. Its open ends come first:
+- **Close the verification gaps:** record the first Kani results from the `kani` CI job, finish
+  the whole-tick CBMC harness (`h_act_tick_safe`) on a machine with more memory, triage the 51
+  surviving mutants, and collect the CI-runner replications (Linux, macOS, Windows).
 - **Brains under YJIT:** profile genome ISeqs with `--yjit-stats` and find which opcodes
   dominate. Brains are about 70% of each tick once the world is native.
 - **Cheaper births:** cache compiled ISeqs for identical mutated sources. Genome compilation is
