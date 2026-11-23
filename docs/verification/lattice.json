@@ -1,0 +1,12 @@
+{
+  "tool": "formal/cbmc/lattice.sh",
+  "cases": 5308416,
+  "crowd_asm_vs_c": 10616832,
+  "rust_vs_c_ticks": 5308416,
+  "failures": 0,
+  "passed": true,
+  "seconds": 6,
+  "date_utc": "2026-11-23T01:24:46Z",
+  "cc": "gcc (Debian 14.2.0-19) 14.2.0",
+  "sanitizers": "address,undefined,float-cast-overflow"
+}
