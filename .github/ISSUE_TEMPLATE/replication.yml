@@ -1,0 +1,53 @@
+name: Replication report
+description: You ran `just replicate` (or `rake replicate`). Thank you! Passing and failing runs are both welcome.
+title: "Replication: <OS> / <CPU> / Ruby <version>"
+labels: ["replication"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Protocol: [REPLICATION.md](https://github.com/0thernes/yarvpilled/blob/main/REPLICATION.md).
+        A replication that **fails** is the most useful kind; please don't fix things before reporting.
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options:
+        - All checks matched bit for bit
+        - Some checks FAILED
+        - Could not build / run
+    validations:
+      required: true
+  - type: input
+    id: machine
+    attributes:
+      label: Machine
+      description: OS and version, CPU model, bare metal / VM / container
+      placeholder: "Ubuntu 24.04, AMD Ryzen 7 7840U, bare metal"
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit or tag
+      placeholder: "v0.4.0 or the output of git rev-parse --short HEAD"
+    validations:
+      required: true
+  - type: textarea
+    id: json
+    attributes:
+      label: out/replication.json
+      description: Paste the whole file.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: bench
+    attributes:
+      label: Optional: `rake bench` / `rake control` results
+      description: out/bench.md or out/control.md, if you ran them. Ratios matter more than absolute speed.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Deviations from the protocol, compiler versions, surprises.

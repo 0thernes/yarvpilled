@@ -101,4 +101,30 @@ class TestStats < Minitest::Test
     assert_operator overlap[:diff][0], :<, 0
     assert_operator overlap[:diff][1], :>, 0
   end
+
+  # Added after mutation testing: pin the exact estimators, not just their ballpark.
+  def test_recorded_control_statistics_recompute_exactly
+    stats = JSON.parse(File.read(File.expand_path("../docs/control.json", __dir__)))["stats"]
+    stats.each do |metric, st|
+      ci = C.bootstrap_ci(st["selection"], st["drift"])
+      assert_equal st["ci"]["diff"], ci[:diff], "#{metric}: bootstrap CI of the difference"
+      assert_equal st["ci"]["d"], ci[:d], "#{metric}: bootstrap CI of d"
+    end
+    fit = stats.fetch("fitness")
+    assert_equal fit["p"], C.permutation_p(fit["selection"], fit["drift"]), "fitness: recorded permutation p"
+  end
+
+  def test_monte_carlo_estimator_edges
+    a = (0...20).map(&:to_f)
+    b = (100...120).map(&:to_f)
+    assert_equal 1.0 / 1001, C.permutation_p(a, b, mc: 1000), "C(40,20) is above EXACT_LIMIT: (1 + 0) / (1 + B)"
+    assert_equal 1.0, C.permutation_p_mc([1.0] * 5, [1.0] * 5, mc: 100), "all relabelings tie: (1 + B) / (1 + B)"
+    assert_equal 2.0 / 252, C.permutation_p((1..5).map(&:to_f), (6..10).map(&:to_f)), "C(10,5) = 252 is exact"
+  end
+
+  def test_p_value_formatting_boundary
+    assert_equal "0.0010", C.fmt_p(0.001)
+    assert_equal "0.0012", C.fmt_p(0.0012)
+    assert_equal "9.9e-04", C.fmt_p(0.00099)
+  end
 end

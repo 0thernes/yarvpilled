@@ -1,0 +1,7 @@
+C (-Wall -Wextra): clean
+clippy: clean
+ruby -w: clean
+
+real	0m22.196s
+user	0m21.514s
+sys	0m0.619s

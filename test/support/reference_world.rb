@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../lib/yarvpilled/trig_table"
+require "yarvpilled/trig_table"
 
 module Yarvpilled
   # Deliberately simple, slow reference stepper for differential testing.

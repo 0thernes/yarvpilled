@@ -1,0 +1,5 @@
+# Pinned for reproducible benchmark and proof-check results (rustup installs it on first use).
+[toolchain]
+channel = "1.85.1"
+components = ["clippy"]
+profile = "minimal"

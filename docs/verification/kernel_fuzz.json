@@ -1,0 +1,25 @@
+{
+  "tool": "fuzz/run.sh (libFuzzer, fuzz/kernel_fuzz.c)",
+  "what": "differential: every input decodes to a world (size, food grid, fertility, creatures, actions) that is stepped by the C kernel, the C kernel with the asm crowd scan, and the Rust kernel; sensors, births/deaths and full state must agree bit for bit after every tick, and positions/headings/sensors must stay in range",
+  "sanitizers": "-fsanitize=fuzzer,address,undefined,float-cast-overflow -fno-sanitize-recover=all (C kernel and harness instrumented; asm and the Rust staticlib are checked differentially but are not coverage-instrumented)",
+  "compiler": "Debian clang version 19.1.7",
+  "host": "8 vCPU Intel Xeon container, Linux, single fuzzing process",
+  "date_utc": "2026-11-22",
+  "findings": [
+    {
+      "after_execs": 7176,
+      "input": "fuzz/regressions/tiny-world-escape.bin",
+      "what": "worlds smaller than 3 grid cells (24 units) per axis: collision pushes can leave the torus after one wrap step and the 3x3 neighbourhood aliases (crowding double-counted). All backends agreed, so it was a spec gap, not a backend mismatch.",
+      "fix": "World.new rejects w/h < 72 (and NaN/inf/huge sizes, bad food cell, bad capacity) on every backend; the harness now only generates legal worlds. Real runs use 768x512 and were unaffected (tools/reproduce.rb still matches bit for bit)."
+    }
+  ],
+  "runs_after_fix": [
+    { "seconds": 31, "execs": 128687 },
+    { "seconds": 1201, "execs": 4193243, "final_cov": 188, "final_ft": 889, "corpus": 248, "exec_per_sec": 3491 }
+  ],
+  "seconds": 1232,
+  "execs": 4321930,
+  "crashes_after_fix": 0,
+  "corpus_committed": "fuzz/corpus (244 inputs after -merge=1)",
+  "note": "coverage plateaued at 188 edges within the first few hundred execs: the kernel is branch-light, so most of the value is the differential and sanitizer checks over 4.3M random worlds, not new coverage"
+}

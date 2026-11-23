@@ -26,7 +26,9 @@ LABELS = [
   ["science",          "78ff8c", "Selection/drift control, statistics"],
   ["platform: windows", "0078d6", "RubyInstaller / DevKit specifics"],
   ["platform: macos",  "999999", "macOS / arm64 specifics"],
-  ["ci",               "2088ff", "GitHub Actions workflows"]
+  ["ci",               "2088ff", "GitHub Actions workflows"],
+  ["replication",      "0e8a16", "Independent replication reports (REPLICATION.md)"],
+  ["verification",     "5319e7", "Tests, fuzzing, proofs, claims (docs/verification.md)"]
 ].freeze
 
 if ARGV.include?("--list")

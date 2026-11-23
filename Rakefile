@@ -11,6 +11,10 @@
 #   rake site      build the GitHub Pages demo into _site/ (replay of a real run)
 #   rake labels    create/update GitHub issue labels via gh (DRY=1 to print only)
 #   rake clean     remove build products
+#   rake reproduce clean rebuild + tests + re-derive every deterministic headline number (tools/reproduce.rb)
+#   rake replicate same, then writes out/replication.json for REPLICATION.md (WHO="your name")
+#   rake lint      -Wall -Wextra build, clippy, ruby -w over the suite (informational)
+#   rake sanitize  test suite against an ASan + UBSan build of the C extension (Linux)
 #
 # Environment:
 #   YP_STRICT=1        fail `rake compile` instead of falling back to pure Ruby (used by CI)
@@ -98,10 +102,12 @@ task :bench do
      "--repeats=#{ENV.fetch('REPEATS', '5')}"
 end
 
-desc "Selection vs random-drift control (REPLICATES=8 TICKS=4000) -> out/control.md"
+desc "Selection vs random-drift control, the pre-registered run (REPLICATES=20 FIRST_SEED=201 TICKS=4000 WORKERS=nproc) -> out/control.md"
 task :control do
+  require "etc"
   sh RUBY, *yjit_flag, File.join(ROOT, "yarv_brain.rb"), "--control",
-     "--replicates=#{ENV.fetch('REPLICATES', '8')}", "--ticks=#{ENV.fetch('TICKS', '4000')}"
+     "--replicates=#{ENV.fetch('REPLICATES', '20')}", "--first-seed=#{ENV.fetch('FIRST_SEED', '201')}",
+     "--ticks=#{ENV.fetch('TICKS', '4000')}", "--workers=#{ENV.fetch('WORKERS', Etc.nprocessors.to_s)}"
 end
 
 desc "Render out/yarvpilled.mp4 + gif + stills + run log (needs ffmpeg)"
@@ -134,7 +140,7 @@ task :clean do
   Dir.glob(SO_GLOB).each { FileUtils.rm_f(_1) }
 end
 
-desc "Run the whole test suite against an ASan+UBSan build of the C extension (Linux), then rebuild normally"
+desc "Run the whole test suite against an ASan+UBSan build of the C extension (Linux), then rebuild normally (RECORD=1 writes docs/verification/sanitize.json)"
 task :sanitize do
   abort "rake sanitize needs Linux + gcc" unless RbConfig::CONFIG["host_os"].include?("linux")
   cc = ENV.fetch("CC", "gcc")
@@ -156,12 +162,68 @@ task :sanitize do
     # conflicts with it on thread exit ("failed to deallocate").
     env = { "LD_PRELOAD" => rt.join(" "), "ASAN_OPTIONS" => "detect_leaks=0:use_sigaltstack=0:abort_on_error=1",
             "UBSAN_OPTIONS" => "halt_on_error=1:print_stacktrace=1" }
-    ok = system(env, RUBY, "-Ilib", "-Itest", "-e", 'Dir["test/test_*.rb"].sort.each { require "./#{_1}" }', chdir: ROOT)
+    require "open3"
+    require "json"
+    t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    log = +""
+    Open3.popen2e(env, RUBY, "-Ilib", "-Itest", "-e", 'Dir["test/test_*.rb"].sort.each { require "./#{_1}" }', chdir: ROOT) do |_i, io, th|
+      io.each_line { |l| print l; log << l }
+      ok = th.value.success?
+    end
+    if ENV["RECORD"] == "1"
+      runs, assertions, failures, errors, skips = log[/(\d+) runs, (\d+) assertions, (\d+) failures, (\d+) errors, (\d+) skips/]&.then { $~.captures.map(&:to_i) }
+      rec = { tool: "rake sanitize", date_utc: Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ"), ruby: RUBY_DESCRIPTION,
+              cc: `#{cc} --version`.lines.first.strip, flags: "-fsanitize=address,undefined,float-cast-overflow -fno-sanitize-recover=undefined,float-cast-overflow -O1",
+              runs: runs, assertions: assertions, failures: failures, errors: errors, skips: skips,
+              sanitizer_reports: log.scan(/ERROR: AddressSanitizer|runtime error:/).size,
+              seconds: (Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0).round(1), passed: ok }
+      File.write(File.join(ROOT, "docs/verification/sanitize.json"), JSON.pretty_generate(rec) + "\n")
+    end
   ensure
     Rake::Task[:compile].invoke
   end
   abort "sanitizer run failed" unless ok
   puts "sanitizer run: all tests passed under ASan + UBSan"
+end
+
+desc "Clean rebuild, full tests, then re-derive every deterministic headline number (QUICK=1 for a short run)"
+task reproduce: %i[clean compile test] do
+  sh RUBY, *yjit_flag, File.join(ROOT, "tools/reproduce.rb"), *(ENV["QUICK"] == "1" ? ["--quick"] : [])
+end
+
+desc "Like reproduce, and writes out/replication.json to attach to a replication issue (WHO=\"name\")"
+task replicate: %i[clean compile test] do
+  sh RUBY, *yjit_flag, File.join(ROOT, "tools/reproduce.rb"), "--who=#{ENV.fetch('WHO', 'anonymous')}",
+     "--out=#{File.join(ROOT, 'out/replication.json')}"
+  puts "\nNow open a 'Replication report' issue and paste out/replication.json:"
+  puts "  https://github.com/0thernes/yarvpilled/issues/new?template=replication.yml"
+end
+
+desc "Static checks (informational): C warnings, clippy, ruby -w over the suite"
+task :lint do
+  failures = []
+  lint_build = File.join(ROOT, "tmp/lint")
+  FileUtils.rm_rf(lint_build)
+  FileUtils.mkdir_p(lint_build)
+  out = Dir.chdir(lint_build) do
+    IO.popen([RUBY, File.join(ROOT, "ext/yarvpilled_native/extconf.rb")], err: %i[child out], &:read)
+    IO.popen([ENV.fetch("MAKE", "make")], err: %i[child out], &:read)
+  end
+  warn_lines = out.lines.grep(/warning:/)
+  puts "C (-Wall -Wextra): #{warn_lines.empty? ? 'clean' : "#{warn_lines.size} warnings"}"
+  warn_lines.first(20).each { puts "  #{_1}" }
+  failures << "C warnings" unless warn_lines.empty?
+  if tool?("cargo")
+    ok = Dir.chdir(RUST_DIR) { system("cargo clippy --quiet --all-targets --features proof-check -- -D warnings") }
+    puts "clippy: #{ok ? 'clean' : 'warnings'}"
+    failures << "clippy" unless ok
+  end
+  rb = IO.popen([RUBY, "-w", "-Ilib", "-Itest", "-e", 'Dir["test/test_*.rb"].sort.each { require "./#{_1}" }'], err: %i[child out], chdir: ROOT, &:read)
+  rw = rb.lines.grep(/warning:/).reject { _1.include?("/gems/") }
+  puts "ruby -w: #{rw.empty? ? 'clean' : "#{rw.size} warnings"}"
+  rw.first(20).each { puts "  #{_1}" }
+  failures << "ruby -w" unless rw.empty?
+  abort "lint: #{failures.join(', ')}" unless failures.empty?
 end
 
 task default: %i[compile test]

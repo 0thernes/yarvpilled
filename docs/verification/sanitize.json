@@ -1,0 +1,15 @@
+{
+  "tool": "rake sanitize",
+  "date_utc": "2026-11-23T00:03:00Z",
+  "ruby": "ruby 3.4.7 (2025-10-08 revision 7a5688e2a2) +PRISM [x86_64-linux]",
+  "cc": "gcc (Debian 14.2.0-19) 14.2.0",
+  "flags": "-fsanitize=address,undefined,float-cast-overflow -fno-sanitize-recover=undefined,float-cast-overflow -O1",
+  "runs": 50,
+  "assertions": 3095373,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0,
+  "sanitizer_reports": 0,
+  "seconds": 31.7,
+  "passed": true
+}

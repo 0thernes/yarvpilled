@@ -12,6 +12,11 @@ Zero models. Pure CRuby. World loop in Ruby, C, Rust or hand-written x86-64 asm,
 [![YJIT](https://img.shields.io/badge/YJIT-ready-CC342D)](https://docs.ruby-lang.org/en/master/yjit/yjit_md.html)
 [![Gems](https://img.shields.io/badge/runtime%20gems-0-brightgreen)](docs/adr/0003-stdlib-only.md)
 [![Demo](https://img.shields.io/badge/demo-GitHub%20Pages-00ebff)](https://0thernes.github.io/yarvpilled/)
+[![Verify](https://github.com/0thernes/yarvpilled/actions/workflows/verify.yml/badge.svg)](https://github.com/0thernes/yarvpilled/actions/workflows/verify.yml)
+[![Verification ladder](https://img.shields.io/badge/verification-14%20layers-6f42c1)](docs/verification.md)
+[![Lean 4](https://img.shields.io/badge/Lean%204-31%20theorems%2C%200%20sorry-0b7285)](formal/lean/README.md)
+[![Claims](https://img.shields.io/badge/claims-24%20mapped%20to%20tests-2ea44f)](CLAIMS.md)
+[![Pre-registered](https://img.shields.io/badge/stats-pre--registered-informational)](docs/preregistration.md)
 
 **[Watch it in your browser](https://0thernes.github.io/yarvpilled/)**: a replay of a real CRuby run, recorded by CI.
 
@@ -35,32 +40,37 @@ creature's body (color, size, shape, glow) is computed from its own opcode histo
 [Results](#results-at-a-glance) · [Quickstart](#quickstart) · [Usage](#usage) ·
 [Architecture](#architecture) · [Real vs. metaphor](#whats-genuinely-real-vs-metaphor) ·
 [Benchmarks](#benchmarks-ruby-vs-yjit-vs-c-vs-rust-vs-asm) · [Control experiment](#control-selection-vs-random-drift) ·
-[Limitations](#limitations) · [Docs](#documentation) · [Citation](#citation) · [License](#license)
+[Limitations](#limitations) · [Verification](#verification) · [Docs](#documentation) · [Citation](#citation) · [License](#license)
 
 ## Results at a glance
 
-Speed, as median of 5 fresh processes (seed 11, 2000 ticks, identical checksum in all 30 runs):
+<!-- generated:speed-glance -->
+Speed, median of 5 fresh processes per tier (seed 11, 2000 ticks; identical checksum `557-9-178-1263170-160` in all 30 runs) [C-BENCH-1, C-BENCH-3]:
 
 | tier | creatures/sec | vs pure Ruby | world loop only (updates/sec) | share of tick in YARV brains |
 |---|---:|---:|---:|---:|
-| pure Ruby interpreter | 79,543 | 1.00x | 145,500 | 17% |
-| pure Ruby + YJIT | 147,949 | 1.86x | 357,931 | 31% |
-| C + YJIT | 278,971 | 3.51x | 3,202,418 | 72% |
-| Rust + YJIT | 270,977 | 3.41x | 2,706,854 | 70% |
-| hand-written asm + YJIT | 275,521 | 3.46x | 2,884,147 | 72% |
+| pure Ruby interpreter | 74,747 | 1.00x | 137,687 | 18% |
+| pure Ruby + YJIT | 139,866 | 1.87x | 349,480 | 32% |
+| C + YJIT | 243,619 | 3.26x | 2,848,731 | 72% |
+| Rust + YJIT | 251,895 | 3.37x | 2,498,088 | 70% |
+| asm + YJIT | 262,779 | 3.52x | 3,046,347 | 72% |
+<!-- /generated:speed-glance -->
 
-Evolution, from 8 seeds per arm, measured against a random-drift null model:
+<!-- generated:evolution-glance -->
+Evolution, 20 seeds per arm (pre-registered), against a random-drift null model [C-CTRL-1, C-CTRL-2]:
 
-| metric | selection | drift | Holm-adjusted p |
-|---|---:|---:|---:|
-| foraging fitness (common-garden assay) | 5.009 | 4.417 | 0.038 |
-| survival in assay | 0.708 | 0.512 | 0.009 |
-| mean bytecode length (words) | 32.5 | 54.2 | 0.0009 |
+| metric | selection | drift | difference [95% CI] | Holm-adjusted p |
+|---|---:|---:|---:|---:|
+| foraging fitness (common-garden assay) | 5.073 | 4.472 | +0.601 [+0.314, +0.909] | 8.0e-04 |
+| survival in assay | 0.734 | 0.566 | +0.168 [+0.092, +0.248] | 3.6e-04 |
+| mean bytecode length (words) | 34.5 | 52.4 | -17.9 [-21.1, -15.0] | 6.0e-05 |
+<!-- /generated:evolution-glance -->
 
-**Verdict.** C, Rust and hand-written asm land within run-to-run noise of each other (about
-3.5x pure Ruby end to end, about 20x on the world loop). Once the world is native, about 70% of
-each tick is YARV running genome bytecode, so the brains set the speed, not the language of the
-world loop. Selection measurably beats drift.
+**Verdict.** C, Rust and hand-written asm are tied within run-to-run noise (about 3.3-3.5x pure
+Ruby end to end, about 20x on the world loop). Once the world is native, about 70% of each tick
+is YARV running genome bytecode, so the brains set the speed, not the language of the world
+loop. Selection beats drift on every pre-registered hypothesis. Every claim has an ID, a command
+and a test: [CLAIMS.md](CLAIMS.md). How we tried to break it: [docs/verification.md](docs/verification.md).
 
 ## Quickstart
 
@@ -166,7 +176,8 @@ flowchart LR
 hash grid, resource regrowth, movement, eating, metabolism, collision, death and corpse
 nutrients. They never decide anything. Decisions always come from YARV running genome ISeqs.
 All four backends use the same integer and IEEE-754 operation order (no FMA), and
-`test/test_world_equivalence.rb` asserts they stay bit-identical over 300 ticks with births.
+`test/test_world_equivalence.rb` and `test/test_differential.rb` assert they stay bit-identical
+(and equal to a deliberately simple reference stepper) over hundreds of random worlds.
 Details: [docs/architecture.md](docs/architecture.md) and the [ADRs](docs/adr/README.md).
 
 ## What's genuinely real vs. metaphor
@@ -210,90 +221,84 @@ second. The "time in ..." columns come from in-process timers around each tick
 phase. "World via Ruby API" includes the Array <-> buffer glue; "kernel only"
 times the native kernels with no Ruby involved.
 
-ruby 3.4.7 | Intel(R) Xeon(R) Processor | 8 cpus | seed 11 | 2000 ticks | 5 runs per tier, each a fresh process | values are **median (min-max)**
+<!-- generated:bench-tables -->
+| tier | creatures/sec, median (min-max) | vs pure Ruby | brains | world | spread | world via Ruby API (updates/sec) | kernel only (updates/sec) | crowd scan (ns) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| pure Ruby interpreter | 74,747 (68,142-81,448) | 1.00x | 18% | 80% | 17.8% | 137,687 | n/a | n/a |
+| pure Ruby + YJIT | 139,866 (127,136-144,177) | 1.87x | 32% | 62% | 12.2% | 349,480 | n/a | n/a |
+| C + YJIT | 243,619 (202,250-276,294) | 3.26x | 72% | 14% | 30.4% | 2,848,731 | 3,246,770 | 119.6 |
+| Rust + YJIT | 251,895 (233,588-263,868) | 3.37x | 70% | 16% | 12.0% | 2,498,088 | 2,890,079 | n/a |
+| asm + YJIT | 262,779 (257,459-282,998) | 3.52x | 72% | 14% | 9.7% | 3,046,347 | 3,496,816 | 107.1 |
+| C, interpreter (extra) | 223,338 (179,262-228,487) | 2.99x | 76% | 14% | 22.0% | 3,076,142 | 3,506,024 | 109.6 |
 
-### Full simulation (brains + world)
+Correctness next to every timing: all 30 runs produced checksum `557-9-178-1263170-160`, and every world-loop timing ended on state digest `699cb7c5dfcb0295` [C-BENCH-1, C-BENCH-2].
+Recorded on: Intel(R) Xeon(R) Processor, 8 logical CPUs, container-other, load average 4.87 4.15 3.36 at start, ruby 3.4.7, gcc (Debian 14.2.0-19), rustc 1.85.1 (4eb161250 2025-03-15) (built from a source tarball).
+<!-- /generated:bench-tables -->
 
-| tier | creatures/sec | generations/sec | ticks/sec | vs pure Ruby | time in brains (YARV think) | time compiling births (mutate+ISeq) | time in world (sense+act) | spread | checksum |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| pure Ruby interpreter | 79,543 (71,055-80,313) | 2.10 (1.87-2.12) | 466 (417-471) | 1.00x | 17% | 3% | 80% | 11.6% | `557-9-178-1263170-160` |
-| pure Ruby + YJIT | 147,949 (139,349-155,673) | 3.90 (3.68-4.11) | 867 (817-913) | 1.86x | 31% | 6% | 63% | 11.0% | `557-9-178-1263170-160` |
-| C + YJIT | 278,971 (265,787-303,899) | 7.36 (7.01-8.02) | 1,636 (1,558-1,782) | 3.51x | 72% | 13% | 15% | 13.7% | `557-9-178-1263170-160` |
-| Rust + YJIT | 270,977 (254,027-287,471) | 7.15 (6.70-7.59) | 1,589 (1,489-1,686) | 3.41x | 70% | 12% | 17% | 12.3% | `557-9-178-1263170-160` |
-| asm + YJIT | 275,521 (246,846-280,025) | 7.27 (6.51-7.39) | 1,616 (1,447-1,642) | 3.46x | 72% | 13% | 14% | 12.0% | `557-9-178-1263170-160` |
-| C, interpreter (extra) | 215,625 (189,853-220,369) | 5.69 (5.01-5.81) | 1,264 (1,113-1,292) | 2.71x | 76% | 9% | 14% | 14.2% | `557-9-178-1263170-160` |
+**Verdict.**
 
-### World loop only (no brains)
+<!-- generated:bench-verdict -->
+- End to end, the native tiers are 3.26-3.52x pure Ruby. Their medians differ by at most 7.9%, less than the smallest run-to-run spread among them (9.7%; largest 30.4%), so they are tied within noise [C-BENCH-3].
+- About 70-72% of each native tick is YARV running genome bytecode, so the brains set the speed, not the world loop's language [C-BENCH-4].
+- On the world loop alone, native backends are 18-22x pure Ruby through the Ruby API [C-BENCH-5]. Fastest bare kernel in this run: asm + YJIT (3,496,816 updates/s).
+- Crowd scan: C 119.6 ns, asm 107.1 ns per creature. The hand-written asm is in the same range as gcc -O3, not a big win [C-BENCH-6].
+<!-- /generated:bench-verdict -->
 
-| tier | world via Ruby API (updates/sec) | vs pure Ruby | kernel only, no Ruby glue (updates/sec) | crowd scan (ns/creature) | spread (API) |
-|---|---:|---:|---:|---:|---:|
-| pure Ruby interpreter | 145,500 (137,090-154,603) | 1.0x | n/a | n/a | 12.0% |
-| pure Ruby + YJIT | 357,931 (354,188-371,538) | 2.5x | n/a | n/a | 4.8% |
-| C + YJIT | 3,202,418 (2,860,074-3,352,682) | 22.0x | 3,792,146 (3,729,232-3,852,531) | 103.1 (99.4-106.7) | 15.4% |
-| Rust + YJIT | 2,706,854 (2,654,423-2,776,398) | 18.6x | 3,089,648 (2,817,091-3,195,424) | n/a | 4.5% |
-| asm + YJIT | 2,884,147 (2,787,973-3,074,170) | 19.8x | 3,509,464 (3,248,720-3,778,834) | 104.5 (101.5-111.9) | 9.9% |
-| C, interpreter (extra) | 2,807,776 (2,487,747-3,035,365) | 19.3x | 3,584,645 (2,980,834-3,629,377) | 108.6 (107.7-157.3) | 19.5% |
-
-Identical full-sim checksum across all 30 runs: **true** (`557-9-178-1263170-160`; births-maxgen-alive-food_eaten-species). The world backends are also bit-identical step by step (test/test_world_equivalence.rb).
-
-**Verdict.** Once the world loop is native, YARV dominates: about 72% of each
-tick is creatures executing their bytecode brains, about 13% is compiling new
-genome ISeqs, and only about 15% is the world. So C, Rust and hand-written asm
-land within each other's run-to-run spread on the full simulation (3.4-3.5x
-over pure Ruby).
-- On the bare world kernel, C is fastest: 3.79M updates/s, vs 3.51M for asm and
-  3.09M for Rust.
-- The hand-written asm crowd scan only ties gcc -O3 (about 103-105 ns per
-  creature).
-- The remaining lever is the brains themselves (YJIT on genome ISeqs), not the
-  world.
+Each timing sits next to its correctness check, losses included: the full report with
+hardware details, per-phase shares and min-max ranges is [docs/bench.md](docs/bench.md), and the
+previous run is kept as [docs/bench_v0.2.0.md](docs/bench_v0.2.0.md). The box this ran on was
+busy (see the load average), which is why spreads reach 20-30%.
 
 ## Control: selection vs random drift
 
-`rake control` (= `ruby --yjit yarv_brain.rb --control --replicates=8 --ticks=4000`). Without this
-control, "evolution" could just be mutation noise. The null model keeps
-everything identical (same seeds, same mutation rate, brains still executed)
-except that genomes can't affect fitness: actions are randomized and
-metabolic cost is flat.
+`rake control` (= `ruby --yjit yarv_brain.rb --control --replicates=20 --first-seed=201 --ticks=4000`).
+Without this control, "evolution" could just be mutation noise. The null model keeps everything
+identical (same seeds, same mutation rate, brains still executed) except that genomes can't
+affect fitness: actions are randomized and metabolic cost is flat.
 
-8 seeds x 2 conditions, 4000 ticks each, events off, world=native. Selection: brain output drives behaviour, cost scales with bytecode. Drift (null model): brain still runs, actions are random, cost is flat, so genomes carry no fitness signal. Common-garden assay: top 8 species per population (abundance-weighted), 40 clones each, 300 ticks, flat cost, no reproduction. Test: exact two-sided permutation test on the difference of means (all C(16,8) = 12870 relabelings), with Holm-Bonferroni correction across the 6 metrics. The hand-written seed genome scores fitness 4.438 and survival 0.55 in the same assay.
+The confirmatory run was **pre-registered** ([docs/preregistration.md](docs/preregistration.md),
+committed before any of its data existed): hypotheses, seeds 201-220, n = 20 per arm, the test
+(two-sided permutation test on the difference of means, Monte Carlo with 100,000 seeded
+relabelings, Holm correction) and the decision rule. Effect sizes come with 95% percentile
+bootstrap CIs (10,000 resamples). Common-garden assay: top 8 species per population
+(abundance-weighted), 40 clones each, 300 ticks, flat cost, no reproduction.
 
-| metric | selection mean +/- sd | drift mean +/- sd | diff | Cohen's d | permutation p | Holm-adjusted p |
-|---|---:|---:|---:|---:|---:|---:|
-| assay fitness (energy intake / creature-tick) | 5.009 +/- 0.472 | 4.417 +/- 0.410 | +0.592 | 1.34 | 0.0190 | 0.0379 |
-| assay survival (fraction alive after 300 ticks) | 0.708 +/- 0.114 | 0.512 +/- 0.090 | +0.196 | 1.91 | 0.0030 | 0.0089 |
-| species entropy (bits) | 5.209 +/- 0.327 | 6.040 +/- 0.196 | -0.831 | -3.08 | 0.0002 | 0.0009 |
-| opcode entropy (bits) | 3.286 +/- 0.191 | 3.642 +/- 0.063 | -0.357 | -2.50 | 0.0002 | 0.0009 |
-| mean bytecode length (words) | 32.523 +/- 7.740 | 54.176 +/- 6.850 | -21.652 | -2.96 | 0.0002 | 0.0009 |
-| final population (in-sim, context only) | 209.500 +/- 29.394 | 182.250 +/- 21.110 | +27.250 | 1.06 | 0.0485 | 0.0485 |
+<!-- generated:control-table -->
+| metric | selection mean +/- sd | drift mean +/- sd | diff [95% CI] | Cohen's d [95% CI] | Holm-adjusted p |
+|---|---:|---:|---:|---:|---:|
+| assay fitness (energy intake / creature-tick) | 5.073 +/- 0.632 | 4.472 +/- 0.293 | +0.601 [+0.314, +0.909] | 1.22 [0.73, 1.86] | 8.0e-04 |
+| assay survival (fraction alive after 300 ticks) | 0.734 +/- 0.166 | 0.566 +/- 0.075 | +0.168 [+0.092, +0.248] | 1.30 [0.82, 1.97] | 3.6e-04 |
+| species entropy (bits) | 5.194 +/- 0.407 | 6.126 +/- 0.163 | -0.932 [-1.127, -0.750] | -3.01 [-3.97, -2.50] | 6.0e-05 |
+| opcode entropy (bits) | 3.355 +/- 0.060 | 3.611 +/- 0.041 | -0.257 [-0.287, -0.225] | -4.99 [-7.47, -3.84] | 6.0e-05 |
+| mean bytecode length (words) | 34.506 +/- 2.995 | 52.411 +/- 6.579 | -17.905 [-21.104, -14.969] | -3.50 [-5.23, -2.73] | 6.0e-05 |
+| final population (in-sim, context only) | 214.850 +/- 33.875 | 189.800 +/- 22.867 | +25.050 [+8.450, +43.150] | 0.87 [0.34, 1.46] | 0.0077 |
 
-Per-replicate rows: [docs/control.json](docs/control.json).
+n = 20 seeds per arm, seeds 201-220, 4000 ticks. The hand-written seed genome scores fitness 4.438 and survival 0.550 in the same assay.
+<!-- /generated:control-table -->
 
-p = 0.0002 is the floor of the exact test (2/12870), meaning complete
-separation of the two groups. Selection produces measurably better foragers
-than drift: +13% intake (the hand-written seed scores 4.438) and +38%
-survival. It also purges bytecode bloat (33 vs 54 words) and collapses
-diversity (lower species and opcode entropy). All three hold after Holm
-correction. Caveat: n = 8 per arm, one assay arena, 4000 ticks (about 10
+All five pre-registered hypotheses (H1 fitness, H2 survival, H3 bytecode length, H4 species
+entropy, H5 opcode entropy) are supported. Selection produces better foragers than drift, purges
+bytecode bloat and collapses diversity. Per-replicate rows: [docs/control.json](docs/control.json);
+full report and run record: [docs/control.md](docs/control.md); the earlier 8-seed pilot:
+[docs/control_pilot.md](docs/control_pilot.md). Caveats: one assay arena, 4000 ticks (about 10-15
 generations).
 
 ## Limitations
 
-- **Not a performance claim about languages in general.** The benchmark compares one small,
-  pointer-chasing kernel on one machine (8-core Intel Xeon, Linux, Ruby 3.4.7, gcc, rustc
-  1.85). Run-to-run spread is 10-15%, so differences under that are noise.
-- **The asm backend is x86-64 SysV only** (Linux/BSD). On macOS, arm64 and Windows, `:asm`
-  uses the C crowd scan. The Rust backend is not wired up on Windows.
-- **Windows support is experimental.** It has a CI job (RubyInstaller + DevKit), but that job
-  is informational. The pure-Ruby fallback is the guaranteed path.
-- **Runs with events on aren't bit-reproducible.** Ractor votes and GC events depend on
-  scheduling. Benchmarks and the control experiment turn events off, and those runs are
-  deterministic.
-- **The control experiment is small:** 8 replicates per arm, one assay arena, 4000 ticks
-  (about 10 generations).
-- **ISeq binaries are Ruby-version-specific.** They're never persisted across runs.
-- **It's a genetic-programming A-Life sim.** "Consciousness", "enlightenment" and "hive-mind"
-  are labels for the visuals (see the real-vs-metaphor table).
+The short version: one benchmark machine (busy, virtualized), one assay arena, about 10-15
+generations, events-on runs aren't bit-reproducible, Windows and macOS are CI-only, and the Lean
+proofs cover the integer bookkeeping, not the floating-point geometry. "Consciousness" and
+"hive-mind" are labels for the visuals. The full list, and **what would prove us wrong**:
+[LIMITATIONS.md](LIMITATIONS.md).
+
+## Verification
+
+A 14-layer ladder of attempts to prove this project wrong: pinned toolchains and a one-command
+`just reproduce`, claim IDs, negative and property-based tests, differential testing against a
+slow reference stepper, mutation testing, fuzzing under ASan/UBSan, a Lean 4 spec with proved
+invariants, Kani harnesses, pre-registered statistics, release provenance, and an open call for
+replications. Status per layer: [docs/verification.md](docs/verification.md). Replicate it:
+[REPLICATION.md](REPLICATION.md).
 
 ## Found along the way
 
@@ -309,6 +314,9 @@ entry point is registered as variadic (`argc, argv`). See the comment in
 - [docs/adr/](docs/adr/README.md): architecture decision records
 - [docs/bench.md](docs/bench.md) / [bench.json](docs/bench.json): full benchmark report
 - [docs/control.md](docs/control.md) / [control.json](docs/control.json): selection vs drift report
+- [CLAIMS.md](CLAIMS.md): every claim, its command and its test
+- [docs/verification.md](docs/verification.md): the verification ladder, status per layer
+- [LIMITATIONS.md](LIMITATIONS.md) · [REPLICATION.md](REPLICATION.md) · [docs/provenance.md](docs/provenance.md)
 - [docs/faq.md](docs/faq.md): FAQ
 - [ROADMAP.md](ROADMAP.md): what's next
 - [docs/run_log.txt](docs/run_log.txt): log of the run shown in the GIF (TracePoint rewrites with before/after disasm)
@@ -324,7 +332,7 @@ reads [CITATION.cff](CITATION.cff).
   author  = {0thernes},
   title   = {yarvpilled: an A-Life world where every brain is a live YARV instruction sequence},
   year    = {2026},
-  version = {0.3.0},
+  version = {0.4.0},
   url     = {https://github.com/0thernes/yarvpilled},
   license = {MIT}
 }

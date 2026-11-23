@@ -1,0 +1,17 @@
+{
+  "tool": "tools/genome_fuzz.rb",
+  "seed": 1,
+  "seconds": 600.0,
+  "candidates": 1940343,
+  "per_second": 3234,
+  "counts": {
+    "junk_accepted": 57494,
+    "junk_rejected": 589287,
+    "mutate_accepted": 646781,
+    "splice_accepted": 182323,
+    "splice_rejected": 464458
+  },
+  "findings": [],
+  "ruby": "ruby 3.4.7 (2025-10-08 revision 7a5688e2a2) +PRISM [x86_64-linux]",
+  "date_utc": "2026-11-22T23:54:03Z"
+}

@@ -1,17 +1,26 @@
 name: Release
+# Runs on a v* tag. Builds the release assets, writes SHA256SUMS, attests build
+# provenance (Sigstore, via GitHub), and creates the GitHub Release. Nothing here
+# gates a push. How to verify the assets: docs/provenance.md.
 
 on:
   push:
     tags: ["v*"]
 
 permissions:
-  contents: write
+  contents: write     # create the release and upload assets
+  id-token: write     # OIDC token for the provenance signature
+  attestations: write # store the attestation
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
       - name: Check tag matches VERSION and Yarvpilled::VERSION
         run: |
           tag="${GITHUB_REF_NAME#v}"
@@ -28,13 +37,27 @@ jobs:
             File.write("release-notes.md", body.strip + "\n")
           '
           cat release-notes.md
-      - name: Create GitHub Release (skipped if it already exists)
+      - name: Build release assets
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          mkdir -p dist
+          gem build yarvpilled.gemspec --output "dist/yarvpilled-$v.gem"
+          git archive --format=tar.gz --prefix="yarvpilled-$v/" -o "dist/yarvpilled-$v-src.tar.gz" "$GITHUB_REF_NAME"
+          cp docs/bench.json "dist/yarvpilled-$v-bench.json"
+          cp docs/control.json "dist/yarvpilled-$v-control.json"
+          cd dist && sha256sum -- * > SHA256SUMS && cat SHA256SUMS
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: "dist/*"
+      - name: Create GitHub Release with assets (skipped if it already exists)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
-            echo "Release $GITHUB_REF_NAME already exists; leaving it untouched."
+            echo "Release $GITHUB_REF_NAME already exists; uploading any missing assets only."
+            gh release upload "$GITHUB_REF_NAME" dist/* || true
           else
             gh release create "$GITHUB_REF_NAME" --title "yarvpilled $GITHUB_REF_NAME" \
-              --notes-file release-notes.md --verify-tag
+              --notes-file release-notes.md --verify-tag dist/*
           fi

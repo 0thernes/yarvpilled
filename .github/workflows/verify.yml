@@ -1,0 +1,141 @@
+name: Verify
+# The heavy rungs of the verification ladder (docs/verification.md).
+# Manual or weekly only, every job informational (continue-on-error) and
+# time-boxed. Nothing here runs on push, gates a merge, or slows a commit.
+
+on:
+  workflow_dispatch:
+    inputs:
+      fuzz_seconds:
+        description: "kernel + genome fuzzing time per fuzzer (seconds)"
+        default: "600"
+  schedule:
+    - cron: "17 6 * * 1" # Mondays 06:17 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  sanitize:
+    name: tests under ASan + UBSan
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - uses: dtolnay/rust-toolchain@1.85.1
+      - run: rake compile
+      - run: RECORD=1 rake sanitize
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sanitize
+          path: docs/verification/sanitize.json
+
+  fuzz:
+    name: kernel fuzzer (libFuzzer) + genome fuzzer
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - uses: dtolnay/rust-toolchain@1.85.1
+      - run: sudo apt-get update && sudo apt-get install -y clang
+      - name: Differential kernel fuzzer
+        run: fuzz/run.sh "${{ inputs.fuzz_seconds || '600' }}"
+      - run: rake compile
+      - name: Genome fuzzer
+        run: ruby tools/genome_fuzz.rb --seconds="${{ inputs.fuzz_seconds || '600' }}" --out=out/genome_fuzz.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fuzz
+          path: |
+            tmp/fuzz/last_run.txt
+            tmp/fuzz/crash-*
+            out/genome_fuzz.json
+
+  mutation:
+    name: mutation testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - uses: dtolnay/rust-toolchain@1.85.1
+      - run: rake compile
+      - run: ruby tools/mutate.rb --out=out/mutation.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation
+          path: out/mutation.json
+
+  properties:
+    name: property tests at 10x
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - uses: dtolnay/rust-toolchain@1.85.1
+      - run: rake compile
+      - run: PROP_SCALE=10 ruby -Itest -e 'ARGV.each { require File.expand_path(_1) }' test/test_properties.rb test/test_differential.rb
+
+  lean:
+    name: Lean 4 proofs + mirror differential test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - uses: dtolnay/rust-toolchain@1.85.1
+      - name: Install elan (toolchain comes from formal/lean/lean-toolchain)
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - run: formal/lean/check.sh
+      - run: rake compile
+      - run: ruby -Itest test/test_formal_mirror.rb
+
+  kani:
+    name: Kani proofs of the Rust kernel
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Kani (outside the repo, so rust-toolchain.toml does not apply)
+        run: |
+          cd "$RUNNER_TEMP"
+          rustup toolchain install stable --profile minimal
+          cargo +stable install --locked kani-verifier
+          cargo kani setup
+      - name: cargo kani
+        working-directory: ext/yarvpilled_rust
+        run: cargo kani
+
+  proof-check:
+    name: Kani harness bodies as randomized tests (stable Rust)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.85.1
+      - working-directory: ext/yarvpilled_rust
+        run: cargo test --features proof-check

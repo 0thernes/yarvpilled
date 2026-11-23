@@ -140,6 +140,6 @@ class TestProperties < Minitest::Test
       accepted += 1
       assert_kind_of Integer, genome.brain.call(*Array.new(6) { g.int(0, 255) })
     end
-    assert_operator accepted, :>, 50, "generator too hostile: almost nothing was valid"
+    assert_operator accepted, :>, 0.03 * 3000 * Prop::SCALE, "generator too hostile: almost nothing was valid"
   end
 end

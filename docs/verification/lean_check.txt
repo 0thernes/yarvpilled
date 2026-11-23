@@ -1,0 +1,40 @@
+✔ [2/5] Built Yarvpilled.Slots (827ms)
+✔ [3/5] Built Yarvpilled.Spec (1.2s)
+✔ [4/5] Built Yarvpilled (232ms)
+Build completed successfully (5 jobs).
+'Yarvpilled.fillFirst_length' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.fillFirst_alive' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.alive_append' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.alive_le_length' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.spawn_le_cap' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.spawn_alive' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.population_le_cap' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.spawn_full' depends on axioms: [propext]
+'Yarvpilled.regrow_food_le_max' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.regrow_acc_lt' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.regrow_monotone' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.regrow_exact' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.eat_conserves' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.eat_take_le_bite' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.eat_take_le_food' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.bite_le_nine' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.energy_identity' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.gain_injective' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.energy_identity_sum' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.refund_bounded' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.refund_ge' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.energySensor_byte' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Yarvpilled.crowdSensor_le' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.ageSensor_le' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.energySensor_mono' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.wrapCell_in_range' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Yarvpilled.wrapCell_eq_mod' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.tick1_food_le' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.tick1_eaten_mono' depends on axioms: [propext, Quot.sound]
+'Yarvpilled.tick1_dead_stays_dead' depends on axioms: [propext]
+'Yarvpilled.tick1_energy_identity' depends on axioms: [propext, Quot.sound]
+OK: 31 theorems proved, none depend on sorry
+
+real	0m1.809s
+user	0m1.598s
+sys	0m1.529s

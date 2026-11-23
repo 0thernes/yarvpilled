@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../lib/yarvpilled/state_digest"
+require "yarvpilled/state_digest"
 
 # Drives any world implementation through a generated spec and yields after
 # every tick, so differential and property tests share one harness.

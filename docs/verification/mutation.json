@@ -1,0 +1,419 @@
+{
+  "tool": "tools/mutate.rb",
+  "date_utc": "2026-11-23T00:39:13Z",
+  "ruby": "ruby 3.4.7 (2025-10-08 revision 7a5688e2a2) +PRISM [x86_64-linux]",
+  "seconds": 386.9,
+  "prop_scale": "0.25",
+  "mutants_run": 443,
+  "killed": 392,
+  "score": 0.8849,
+  "targets": {
+    "world_ruby": {
+      "file": "lib/yarvpilled/world_ruby.rb",
+      "methods": [
+        "initialize",
+        "sense",
+        "act",
+        "spawn",
+        "split",
+        "feed",
+        "food_index",
+        "wrapd",
+        "tdelta",
+        "build_grid"
+      ],
+      "tests": [
+        "test/test_differential.rb",
+        "test/test_properties.rb",
+        "test/test_negative.rb",
+        "test/test_world_equivalence.rb",
+        "test/test_edges.rb"
+      ],
+      "mutants_total": 270,
+      "mutants_run": 270,
+      "killed": 227,
+      "timeouts": 0,
+      "survived": 43,
+      "score": 0.8407,
+      "survivors": [
+        {
+          "line": 45,
+          "from": "0",
+          "to": "1",
+          "text": "@heading = Array.new(@cap, 0)"
+        },
+        {
+          "line": 46,
+          "from": "0",
+          "to": "1",
+          "text": "@age = Array.new(@cap, 0)"
+        },
+        {
+          "line": 47,
+          "from": "0",
+          "to": "1",
+          "text": "@species = Array.new(@cap, 0)"
+        },
+        {
+          "line": 48,
+          "from": "0",
+          "to": "1",
+          "text": "@cost = Array.new(@cap, 0)"
+        },
+        {
+          "line": 49,
+          "from": "0",
+          "to": "1",
+          "text": "@last_action = Array.new(@cap, 0)"
+        },
+        {
+          "line": 50,
+          "from": "0",
+          "to": "1",
+          "text": "@energy = Array.new(@cap, 0)"
+        },
+        {
+          "line": 53,
+          "from": "0",
+          "to": "1",
+          "text": "@food = Array.new(nf, 0)"
+        },
+        {
+          "line": 54,
+          "from": "0",
+          "to": "1",
+          "text": "@fert = Array.new(nf, 0)"
+        },
+        {
+          "line": 56,
+          "from": "1",
+          "to": "2",
+          "text": "@ghead = Array.new(@gw * @gh, -1)"
+        },
+        {
+          "line": 57,
+          "from": "1",
+          "to": "2",
+          "text": "@gnext = Array.new(@cap, -1)"
+        },
+        {
+          "line": 85,
+          "from": ">",
+          "to": ">=",
+          "text": "en = 255 if en > 255"
+        },
+        {
+          "line": 85,
+          "from": "255",
+          "to": "256",
+          "text": "en = 255 if en > 255"
+        },
+        {
+          "line": 88,
+          "from": ">",
+          "to": ">=",
+          "text": "ag = 255 if ag > 255"
+        },
+        {
+          "line": 88,
+          "from": "255",
+          "to": "256",
+          "text": "ag = 255 if ag > 255"
+        },
+        {
+          "line": 88,
+          "from": "255",
+          "to": "256",
+          "text": "ag = 255 if ag > 255"
+        },
+        {
+          "line": 94,
+          "from": "+",
+          "to": "-",
+          "text": "cx = (gx + ox + @gw) % @gw"
+        },
+        {
+          "line": 94,
+          "from": "+",
+          "to": "-",
+          "text": "cx = (gx + ox + @gw) % @gw"
+        },
+        {
+          "line": 95,
+          "from": "+",
+          "to": "-",
+          "text": "cy = (gy + oy + @gh) % @gh"
+        },
+        {
+          "line": 95,
+          "from": "+",
+          "to": "-",
+          "text": "cy = (gy + oy + @gh) % @gh"
+        },
+        {
+          "line": 107,
+          "from": ">",
+          "to": ">=",
+          "text": "cr = 15 if cr > 15"
+        },
+        {
+          "line": 131,
+          "from": ">",
+          "to": ">=",
+          "text": "food[c] = f > FOOD_MAX ? FOOD_MAX : f"
+        },
+        {
+          "line": 138,
+          "from": "<",
+          "to": "<=",
+          "text": "a = i < alen ? (actions[i] & 3) : 0"
+        },
+        {
+          "line": 138,
+          "from": "0",
+          "to": "1",
+          "text": "a = i < alen ? (actions[i] & 3) : 0"
+        },
+        {
+          "line": 152,
+          "from": "<",
+          "to": "<=",
+          "text": "take = food[fc] < bite ? food[fc] : bite"
+        },
+        {
+          "line": 169,
+          "from": "+",
+          "to": "-",
+          "text": "cx = (gx + ox + @gw) % @gw"
+        },
+        {
+          "line": 170,
+          "from": "+",
+          "to": "-",
+          "text": "cy = (gy + oy + @gh) % @gh"
+        },
+        {
+          "line": 172,
+          "from": ">=",
+          "to": ">",
+          "text": "while j >= 0"
+        },
+        {
+          "line": 172,
+          "from": "0",
+          "to": "1",
+          "text": "while j >= 0"
+        },
+        {
+          "line": 173,
+          "from": ">",
+          "to": ">=",
+          "text": "if j > i"
+        },
+        {
+          "line": 177,
+          "from": "<",
+          "to": "<=",
+          "text": "if d2 < lim && d2 != 0.0"
+        },
+        {
+          "line": 199,
+          "from": ">",
+          "to": ">=",
+          "text": "food[fc] = f > FOOD_MAX ? FOOD_MAX : f"
+        },
+        {
+          "line": 230,
+          "from": "0",
+          "to": "1",
+          "text": "@last_action[slot] = 0"
+        },
+        {
+          "line": 235,
+          "from": ">=",
+          "to": ">",
+          "text": "return 0 if i.negative? || i >= @used || !@alive[i]"
+        },
+        {
+          "line": 235,
+          "from": "||",
+          "to": "&&",
+          "text": "return 0 if i.negative? || i >= @used || !@alive[i]"
+        },
+        {
+          "line": 243,
+          "from": "<",
+          "to": "<=",
+          "text": "@energy[i] += amt if i >= 0 && i < @used && @alive[i]"
+        },
+        {
+          "line": 243,
+          "from": ">=",
+          "to": ">",
+          "text": "@energy[i] += amt if i >= 0 && i < @used && @alive[i]"
+        },
+        {
+          "line": 243,
+          "from": "&&",
+          "to": "||",
+          "text": "@energy[i] += amt if i >= 0 && i < @used && @alive[i]"
+        },
+        {
+          "line": 243,
+          "from": "0",
+          "to": "1",
+          "text": "@energy[i] += amt if i >= 0 && i < @used && @alive[i]"
+        },
+        {
+          "line": 296,
+          "from": ">",
+          "to": ">=",
+          "text": "d -= m if d > m / 2"
+        },
+        {
+          "line": 296,
+          "from": "2",
+          "to": "3",
+          "text": "d -= m if d > m / 2"
+        },
+        {
+          "line": 297,
+          "from": "<",
+          "to": "<=",
+          "text": "d += m if d < -m / 2"
+        },
+        {
+          "line": 297,
+          "from": "2",
+          "to": "3",
+          "text": "d += m if d < -m / 2"
+        },
+        {
+          "line": 302,
+          "from": "1",
+          "to": "2",
+          "text": "@ghead.fill(-1)"
+        }
+      ]
+    },
+    "genome_grammar": {
+      "file": "lib/yarvpilled/genome.rb",
+      "methods": [
+        "validate!",
+        "check_expr",
+        "check_cond",
+        "expr",
+        "render"
+      ],
+      "tests": [
+        "test/test_negative.rb",
+        "test/test_properties.rb",
+        "test/test_genome.rb"
+      ],
+      "mutants_total": 86,
+      "mutants_run": 86,
+      "killed": 84,
+      "timeouts": 0,
+      "survived": 2,
+      "score": 0.9767,
+      "survivors": [
+        {
+          "line": 75,
+          "from": "0",
+          "to": "1",
+          "text": "check_expr(st[2], SENSORS + defined, 0, count)"
+        },
+        {
+          "line": 108,
+          "from": "+",
+          "to": "-",
+          "text": "check_expr(c[2], vars, depth + 1, count) && check_expr(c[3], vars, depth + 1, count)"
+        }
+      ]
+    },
+    "control_stats": {
+      "file": "lib/yarvpilled/control.rb",
+      "methods": [
+        "entropy",
+        "permutation_p",
+        "permutation_p_mc",
+        "binom",
+        "bootstrap_ci",
+        "permutation_p_exact",
+        "mean",
+        "sd",
+        "cohens_d",
+        "fmt_p",
+        "min_p",
+        "holm"
+      ],
+      "tests": [
+        "test/test_stats.rb",
+        "test/test_control_and_bench.rb",
+        "test/test_claims.rb"
+      ],
+      "mutants_total": 85,
+      "mutants_run": 85,
+      "killed": 79,
+      "timeouts": 4,
+      "survived": 6,
+      "score": 0.9294,
+      "survivors": [
+        {
+          "line": 86,
+          "from": "<=",
+          "to": "<",
+          "text": "return permutation_p_exact(a, b) if n_rel <= EXACT_LIMIT"
+        },
+        {
+          "line": 98,
+          "from": ">=",
+          "to": ">",
+          "text": "extreme += 1 if (mean(sh.first(a.size)) - mean(sh.drop(a.size))).abs >= obs - 1e-12"
+        },
+        {
+          "line": 98,
+          "from": "12",
+          "to": "13",
+          "text": "extreme += 1 if (mean(sh.first(a.size)) - mean(sh.drop(a.size))).abs >= obs - 1e-12"
+        },
+        {
+          "line": 133,
+          "from": ">=",
+          "to": ">",
+          "text": "extreme += 1 if (mean(ga) - mean(gb)).abs >= obs - 1e-12"
+        },
+        {
+          "line": 133,
+          "from": "12",
+          "to": "13",
+          "text": "extreme += 1 if (mean(ga) - mean(gb)).abs >= obs - 1e-12"
+        },
+        {
+          "line": 212,
+          "from": "<=",
+          "to": "<",
+          "text": "rel <= EXACT_LIMIT ? 2.0 / rel : 1.0 / (1 + MC_PERMUTATIONS)"
+        }
+      ]
+    },
+    "state_digest": {
+      "file": "lib/yarvpilled/state_digest.rb",
+      "methods": [
+        "world"
+      ],
+      "tests": [
+        "test/test_differential.rb",
+        "test/test_properties.rb",
+        "test/test_claims.rb"
+      ],
+      "mutants_total": 2,
+      "mutants_run": 2,
+      "killed": 2,
+      "timeouts": 0,
+      "survived": 0,
+      "score": 1.0,
+      "survivors": []
+    }
+  }
+}

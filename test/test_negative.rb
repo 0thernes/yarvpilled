@@ -93,4 +93,40 @@ class TestNegative < Minitest::Test
       refute_match(/\.rb:\d+:in /, out, "no backtraces for user errors")
     end
   end
+
+  # Added after mutation testing: the grammar limits are exact, not approximate.
+  def test_genome_limits_are_exact_boundaries
+    one = [:n, 1]
+    op_chain = ->(k) { (1..k).reduce(one) { |e, _| [:op, :+, e, one] } }
+    assert G.validate!([], op_chain.(G::DEPTH_LIMIT)), "depth exactly DEPTH_LIMIT is legal"
+    assert_raises(G::InvalidGenome) { G.validate!([], op_chain.(G::DEPTH_LIMIT + 1)) }
+
+    # each nested :if condition puts its operands two levels down
+    if_chain = ->(k, leaf) { (1..k).reduce(leaf) { |e, _| [:if, [:cmp, :<, e, [:n, 0]], one, one] } }
+    half = G::DEPTH_LIMIT / 2
+    assert G.validate!([], if_chain.(half, one)), "if-chain reaching depth #{G::DEPTH_LIMIT}"
+    assert_raises(G::InvalidGenome) { G.validate!([], if_chain.(half, [:op, :+, one, one])) }
+    assert_raises(G::InvalidGenome) { G.validate!([], if_chain.(half + 1, one)) }
+    rhs_chain = ->(k, leaf) { (1..k).reduce(leaf) { |e, _| [:if, [:cmp, :<, [:n, 0], e], one, one] } }
+    assert G.validate!([], rhs_chain.(half, one)), "same limit through the right-hand operand"
+    assert_raises(G::InvalidGenome) { G.validate!([], rhs_chain.(half, [:op, :+, one, one])) }
+    assert G.validate!([[:let, :t0, op_chain.(G::DEPTH_LIMIT)]], one), "statements start at depth 0 too"
+    assert_raises(G::InvalidGenome) { G.validate!([[:let, :t0, op_chain.(G::DEPTH_LIMIT + 1)]], one) }
+
+    tree = ->(d) { d.zero? ? one : [:op, :^, tree.(d - 1), tree.(d - 1)] } # 2^(d+1) - 1 nodes
+    big = tree.(8)                                                         # 511 nodes
+    assert G.validate!([[:let, :t0, big]], one), "exactly NODE_LIMIT (512) nodes is legal"
+    assert_raises(G::InvalidGenome) { G.validate!([[:let, :t0, [:mod, big, 7]]], one) }
+
+    assert G.validate!([], [:mod, one, 4096])
+    assert G.validate!([], [:mod, one, 1])
+    assert_raises(G::InvalidGenome) { G.validate!([], [:mod, one, 4097]) }
+    assert_raises(G::InvalidGenome) { G.validate!([], [:mod, one, 0]) }
+    assert G.validate!([], [:shr, one, 0])
+    assert G.validate!([], [:shr, one, 62])
+    assert_raises(G::InvalidGenome) { G.validate!([], [:shr, one, -1]) }
+    assert_raises(G::InvalidGenome) { G.validate!([], [:shr, one, 63]) }
+    assert_raises(G::InvalidGenome) { G.validate!([], [:sqrt, one]) }
+    assert_raises(G::InvalidGenome) { G.validate!([], [:if, [:cmp, :<, one, one], one, [:bogus]]) }
+  end
 end

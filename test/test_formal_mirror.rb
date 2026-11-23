@@ -31,6 +31,9 @@ class TestFormalMirror < Minitest::Test
       cases << [g.int(0, 255), g.int(0, 255), g.int(-10, 400), g.int(0, 12), g.int(50, 400),
                 *Array.new(g.int(1, 40)) { g.int(0, 3) }]
     end
+    # A fresh clone has no .lake/build yet; Mirror.lean imports the compiled spec.
+    bout, bst = Open3.capture2e(NO_PRELOAD, lake, "build", chdir: LEAN_DIR)
+    assert bst.success?, "lake build failed:\n#{bout}"
     out, err, st = Open3.capture3(NO_PRELOAD, lake, "env", "lean", "--run", "Mirror.lean",
                                   stdin_data: cases.map { _1.join(" ") }.join("\n") + "\n", chdir: LEAN_DIR)
     assert st.success?, err

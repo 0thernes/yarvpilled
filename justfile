@@ -37,9 +37,9 @@ video:
 bench repeats="5" ticks="2000":
     ruby yarv_brain.rb --bench --repeats={{repeats}} --ticks={{ticks}}
 
-# selection vs drift control -> out/control.md
-control replicates="8" ticks="4000":
-    ruby --yjit yarv_brain.rb --control --replicates={{replicates}} --ticks={{ticks}}
+# selection vs drift control, the pre-registered run -> out/control.md
+control replicates="20" first_seed="201" ticks="4000" workers="4":
+    ruby --yjit yarv_brain.rb --control --replicates={{replicates}} --first-seed={{first_seed}} --ticks={{ticks}} --workers={{workers}}
 
 # build the GitHub Pages demo into _site/
 site:
@@ -56,3 +56,50 @@ labels:
 # remove build products
 clean:
     rake clean
+
+# ---- verification ladder (docs/verification.md) ----
+
+# clean rebuild + tests + re-derive every deterministic headline number
+reproduce:
+    rake reproduce
+
+# reproduce, then write out/replication.json for a replication issue
+replicate who="anonymous":
+    rake replicate WHO="{{who}}"
+
+# README numbers vs docs/*.json (use `ruby tools/claims.rb --write` after a new run)
+claims:
+    ruby tools/claims.rb
+
+# -Wall -Wextra, clippy, ruby -w (informational)
+lint:
+    rake lint
+
+# property tests at 10x the cases (Linux/macOS shell)
+soak scale="10":
+    PROP_SCALE={{scale}} ruby -Itest -e 'ARGV.each { require File.expand_path(_1) }' test/test_properties.rb test/test_differential.rb
+
+# whole suite against an ASan + UBSan build of the C extension (Linux)
+sanitize:
+    rake sanitize
+
+# libFuzzer differential kernel fuzzer, N seconds (needs clang)
+fuzz seconds="600":
+    fuzz/run.sh {{seconds}}
+
+# genome fuzzer, N seconds
+fuzz-genomes seconds="600":
+    ruby tools/genome_fuzz.rb --seconds={{seconds}}
+
+# mutation testing -> docs/verification/mutation.json
+mutate:
+    ruby tools/mutate.rb
+
+# Lean 4 proofs + backends vs the Lean mirror (needs elan)
+prove:
+    formal/lean/check.sh
+    ruby -Itest test/test_formal_mirror.rb
+
+# randomized runs of the Kani harness bodies (stable Rust); `cargo kani` needs Kani installed
+proof-check:
+    cd ext/yarvpilled_rust && cargo test --features proof-check
