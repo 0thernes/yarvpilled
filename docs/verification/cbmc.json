@@ -1,0 +1,23 @@
+{
+  "tool": "formal/cbmc/check.sh",
+  "date_utc": "2026-11-23T01:45:00Z",
+  "cbmc": "6.6.0 (cbmc-6.6.0)",
+  "sat_solver": "MiniSat (Debian package; CaDiCaL not compiled in)",
+  "flags": "--bounds-check --pointer-check --div-by-zero-check --signed-overflow-check --conversion-check --float-overflow-check --nan-check --unwind 12 --unwinding-assertions",
+  "note": "Assembled from logged runs, not one uninterrupted check.sh run: the full check.sh was interrupted twice on a heavily loaded box. The four fast harnesses and the vacuity guard were re-run at 2026-11-23T01:45Z (17:45 PST). h_crowd_bounded comes from the logged LAT_STEP=24 run; h_act_tick_safe never completed. Raw log lines: docs/verification/cbmc_runs.txt.",
+  "harnesses": [
+    {"harness": "h_food_index_wrap", "verdict": "VERIFIED", "seconds": 0, "summary": "0 of 1459 failed (1 iterations)", "domain": "fully symbolic"},
+    {"harness": "h_food_index_default_world", "verdict": "VERIFIED", "seconds": 0, "summary": "0 of 1459 failed (1 iterations)", "domain": "fully symbolic finite doubles"},
+    {"harness": "h_wrapd_into_torus", "verdict": "VERIFIED", "seconds": 1, "summary": "0 of 1459 failed (1 iterations)", "domain": "fully symbolic finite doubles"},
+    {"harness": "h_tdelta_short_way", "verdict": "VERIFIED", "seconds": 0, "summary": "0 of 1459 failed (1 iterations)", "domain": "fully symbolic finite doubles"},
+    {"harness": "h_crowd_bounded", "verdict": "VERIFIED", "seconds": 215, "summary": "0 of 1464 failed (1 iterations)", "domain": "72x72 world, 2 creatures, positions on a 24-unit lattice (LAT_STEP=24)"},
+    {"harness": "h_act_tick_safe", "verdict": "KILLED", "seconds": 436, "summary": "no result: ACT_CAP=1 exited 137 (SIGKILL) after 436 s; ACT_CAP=2 exited 15 after 9 s", "domain": "72x72 world, ACT_CAP slots, positions on a 24-unit lattice"}
+  ],
+  "other_runs": [
+    {"harness": "h_crowd_bounded", "config": "fully symbolic positions", "verdict": "TIMEOUT", "exit": 124, "seconds": 600, "log": "exit 124 logged; 600 s limit per PROGRESS.md; about 10 GB RAM"},
+    {"harness": "h_crowd_bounded", "config": "LAT_STEP=12", "verdict": "TIMEOUT", "exit": 124, "seconds": 561, "log": "rc 124 561s"}
+  ],
+  "vacuity_guard_passed": true,
+  "vacuity_guard": "weakened h_food_index_default_world and h_wrapd_into_torus assertions both reported VERIFICATION FAILED (re-run 2026-11-23T01:45Z)",
+  "passed": false
+}

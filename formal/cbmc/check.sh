@@ -17,6 +17,7 @@ for h in h_food_index_wrap h_food_index_default_world h_wrapd_into_torus h_tdelt
   summary=$(printf '%s\n' "$out" | grep -E '^\*\* [0-9]+ of [0-9]+ failed' | tail -1)
   if [ $rc -eq 0 ]; then verdict="VERIFIED"
   elif [ $rc -eq 124 ]; then verdict="TIMEOUT"; fail=1
+  elif [ $rc -eq 137 ] || [ $rc -eq 143 ]; then verdict="KILLED"; fail=1   # OOM killer or external signal: no result
   else verdict="FAILED"; fail=1; printf '%s\n' "$out" | grep -E 'FAILURE|error' | head -20; fi
   echo "$h: $verdict (${secs}s) ${summary}"
   rows+=("{\"harness\": \"$h\", \"verdict\": \"$verdict\", \"seconds\": $secs, \"summary\": \"${summary#\*\* }\"}")

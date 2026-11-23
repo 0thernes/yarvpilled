@@ -8,12 +8,15 @@ scheduled (see `.github/workflows/verify.yml`).
 <!-- generated:verification-evidence -->
 | evidence | value | source |
 |---|---|---|
-| claim IDs mapped to commands/tests | 24 | CLAIMS.md |
+| claim IDs mapped to commands/tests | 25 | CLAIMS.md |
 | property-based cases per test run | 7,350 (x PROP_SCALE) | test/test_*.rb `Prop.check` |
 | Lean theorems proved (no sorry) | 31 | formal/lean, `./check.sh` |
 | Kani harnesses (randomized stable-Rust runs: 20,000 each) | 7 | ext/yarvpilled_rust/src/proofs.rs |
 | kernel fuzzer | 4,321,930 execs in 1,232 s, 0 crashes after fix (1 finding fixed) | docs/verification/kernel_fuzz.json |
 | genome fuzzer | 1,940,343 genomes in 600 s, 0 findings | docs/verification/genome_fuzz.json |
+| mutation score | 88.5% (392/443 mutants killed) | docs/verification/mutation.json |
+| CBMC harnesses on the C kernel | 5/6 verified (h_act_tick_safe: KILLED) | docs/verification/cbmc.json |
+| exhaustive lattice check (ASan + UBSan) | 5,308,416 ticks, 10,616,832 asm-vs-C crowd scans, 5,308,416 Rust-vs-C ticks, 0 failures | docs/verification/lattice.json |
 | ASan + UBSan test run | 50 tests, 0 failures, 0 sanitizer reports | docs/verification/sanitize.json |
 <!-- /generated:verification-evidence -->
 

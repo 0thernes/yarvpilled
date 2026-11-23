@@ -78,8 +78,9 @@ void h_tdelta_short_way(void) {
 }
 
 /* H4: one full yp_c_act tick on a minimal legal world (72x72, 3x3 food and crowd grids,
- * ACT_CAP creature slots, default 1: with 2 slots the collision math ran CBMC out of the
- * box's 15 GB; collisions are covered exhaustively by lattice.c) with arbitrary positions, headings, energies, ages, costs and
+ * ACT_CAP creature slots, default 1. On the dev box neither ACT_CAP=1 nor 2 finished
+ * (see docs/verification/cbmc.json); collisions are covered exhaustively by lattice.c instead)
+ * with arbitrary positions, headings, energies, ages, costs and
  * actions: no out-of-bounds access, no signed overflow, no bad float->int cast,
  * and the invariants the README states hold afterwards. */
 #define CAP 2
