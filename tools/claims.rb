@@ -144,13 +144,20 @@ module Yarvpilled
       sa = v.("docs/verification/sanitize.json")
       cb = v.("docs/verification/cbmc.json")
       la = v.("docs/verification/lattice.json")
-      cases = Dir.glob("test/test_*.rb", base: ROOT).sum { File.read(File.join(ROOT, _1)).scan(/Prop\.check\("[^"]+", cases: ([\d_]+)\)/).sum { |(n)| n.delete("_").to_i } }
+      # Literal counts and named constants (CASES = 300) both count; the Lean mirror's cases are
+      # listed apart because that test skips without Lean.
+      prop = Dir.glob("test/test_*.rb", base: ROOT).to_h do |f|
+        src = File.read(File.join(ROOT, f))
+        [f, src.scan(/Prop\.check\("[^"]+", cases: ([\w]+)\)/).sum { |(n)| (n =~ /\A[\d_]+\z/ ? n : src[/^\s*#{n} = ([\d_]+)/, 1]).delete("_").to_i }]
+      end
+      lean_cases = prop.delete("test/test_formal_mirror.rb").to_i
+      cases = prop.values.sum
       thms = Dir.glob("formal/lean/Yarvpilled/*.lean", base: ROOT).sum { File.read(File.join(ROOT, _1)).scan(/^theorem /).size }
       kani = File.read(File.join(ROOT, "ext/yarvpilled_rust/src/proofs.rs")).scan(/kani::proof\)\]/).size
       claims = File.read(File.join(ROOT, "CLAIMS.md")).scan(/^\| (C-[A-Z]+-\d+) /).flatten.uniq.size
       out = +"| evidence | value | source |\n|---|---|---|\n"
       out << "| claim IDs mapped to commands/tests | #{claims} | CLAIMS.md |\n"
-      out << "| property-based cases per test run | #{int(cases)} (x PROP_SCALE) | test/test_*.rb `Prop.check` |\n"
+      out << "| property-based cases per test run | #{int(cases)} (x PROP_SCALE), plus #{int(lean_cases)} Lean-mirror cases when Lean is installed | test/test_*.rb `Prop.check` |\n"
       out << "| Lean theorems proved (no sorry) | #{thms} | formal/lean, `./check.sh` |\n"
       out << "| Kani harnesses (Kani itself runs in CI only; locally each body ran as 20,000 randomized stable-Rust cases) | #{kani} | ext/yarvpilled_rust/src/proofs.rs |\n"
       out << "| kernel fuzzer | #{int(kf[:execs])} execs in #{int(kf[:seconds])} s, #{kf[:crashes_after_fix]} crashes after fix (#{kf[:findings].size} finding fixed) | docs/verification/kernel_fuzz.json |\n" if kf

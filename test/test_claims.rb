@@ -86,6 +86,16 @@ class TestClaims < Minitest::Test
     assert system("git", "-C", ROOT, "merge-base", "--is-ancestor", prereg, results), "pre-registration is not before the results"
   end
 
+  # README badges carry hand-typed numbers; they must match what they count.
+  def test_readme_badges_match_their_counts
+    ids = claims_md.scan(/^\| (C-[A-Z]+-\d+) /).flatten.uniq.size
+    thms = Dir.glob("formal/lean/Yarvpilled/*.lean", base: ROOT).sum { read(_1).scan(/^theorem /).size }
+    layers = read("docs/verification.md").scan(/^\| (\d+) \| [^|]+ \| (?:verified|partial|not run here) \|/).size
+    assert readme.include?("badge/claims-#{ids}%20mapped%20to%20tests"), "claims badge != #{ids} claim IDs in CLAIMS.md"
+    assert readme.include?("badge/Lean%204-#{thms}%20theorems"), "Lean badge != #{thms} theorems"
+    assert readme.include?("badge/verification-#{layers}%20layers"), "ladder badge != #{layers} layers in docs/verification.md"
+  end
+
   # The claim map is consistent: IDs unique, README IDs exist, referenced tests exist.
   def test_claim_map_resolves
     ids = claims_md.scan(/^\| (C-[A-Z]+-\d+) /).flatten

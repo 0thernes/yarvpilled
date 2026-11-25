@@ -9,13 +9,13 @@ Zero models. Pure CRuby. World loop in Ruby, C, Rust or hand-written x86-64 asm,
 [![Release](https://img.shields.io/github/v/release/0thernes/yarvpilled?sort=semver)](https://github.com/0thernes/yarvpilled/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Ruby](https://img.shields.io/badge/ruby-3.3%20%7C%203.4-CC342D?logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
-[![YJIT](https://img.shields.io/badge/YJIT-ready-CC342D)](https://docs.ruby-lang.org/en/master/yjit/yjit_md.html)
+[![YJIT](https://img.shields.io/badge/YJIT-ready-CC342D)](https://docs.ruby-lang.org/en/3.4/yjit/yjit_md.html)
 [![Gems](https://img.shields.io/badge/runtime%20gems-0-brightgreen)](docs/adr/0003-stdlib-only.md)
 [![Demo](https://img.shields.io/badge/demo-GitHub%20Pages-00ebff)](https://0thernes.github.io/yarvpilled/)
 [![Verify](https://github.com/0thernes/yarvpilled/actions/workflows/verify.yml/badge.svg)](https://github.com/0thernes/yarvpilled/actions/workflows/verify.yml)
 [![Verification ladder](https://img.shields.io/badge/verification-14%20layers-6f42c1)](docs/verification.md)
 [![Lean 4](https://img.shields.io/badge/Lean%204-31%20theorems%2C%200%20sorry-0b7285)](formal/lean/README.md)
-[![Claims](https://img.shields.io/badge/claims-24%20mapped%20to%20tests-2ea44f)](CLAIMS.md)
+[![Claims](https://img.shields.io/badge/claims-25%20mapped%20to%20tests-2ea44f)](CLAIMS.md)
 [![Pre-registered](https://img.shields.io/badge/stats-pre--registered-informational)](docs/preregistration.md)
 
 **[Watch it in your browser](https://0thernes.github.io/yarvpilled/)**: a replay of a real CRuby run, recorded by CI.
@@ -145,7 +145,7 @@ Options: `--world=native|c|asm|rust|ruby`, `--seed=N`, `--ticks=N`, `--seconds=N
 | `rake test` | Runs the minitest suite. Native-only tests are skipped when the extension is absent. |
 | `rake smoke` | Prints `--version`, then does a 300-tick headless run. |
 | `rake bench` | Multi-tier benchmark (`REPEATS=5 TICKS=2000`), written to `out/bench.md` and `.json`. |
-| `rake control` | Selection vs drift (`REPLICATES=8 TICKS=4000`), written to `out/control.md` and `.json`. |
+| `rake control` | The pre-registered selection-vs-drift run (`REPLICATES=20 FIRST_SEED=201 TICKS=4000`, `WORKERS` = CPU count), written to `out/control.md` and `.json`. |
 | `rake video` | Renders the MP4, GIF, stills and run log (needs ffmpeg). |
 | `rake site` | Builds the GitHub Pages demo into `_site/` (a 900-tick replay of a real run). |
 | `rake gem` | Builds `pkg/yarvpilled-VERSION.gem`. |
@@ -186,7 +186,7 @@ Details: [docs/architecture.md](docs/architecture.md) and the [ADRs](docs/adr/RE
 |---|---|
 | **Creature brain** | A Ruby lambda generated from a genome tree: `RubyVM::InstructionSequence.compile` → `#to_binary` → `.load_from_binary(...).eval` → `define_method(:think, &brain)` on a per-species `Class.new(Mind)`. Every tick, every creature calls `think(fa, fl, fr, en, cr, ag)` and YARV executes that block ISeq. **Real.** |
 | **Mutation / reproduction** | When a child is born (30% chance), the genome tree is mutated (point, subtree, insert/delete statement, operator swap), re-rendered, and recompiled into a new species. **Real.** |
-| **Body / phenotype** | Hue = CRC of the exact opcode multiset from `iseq.to_a`. Radius = √bytecode length. Polygon sides = distinct opcode count. Glow = branch count. Metabolic cost per tick = `1 + bytecode_len/22`, so bloated brains starve. **Real.** |
+| **Body / phenotype** | Hue = CRC of the exact opcode multiset from `iseq.to_a`. Radius = √bytecode length. Polygon sides = distinct opcode count. Glow = branch count. Energy drain per tick = `3 + cost` (`+3` when dashing), with genome cost `1 + bytecode_len/22`, so bloated brains starve. **Real.** |
 | **Natural selection rewrites live methods** | Every 150 ticks a targeted `TracePoint.new(:call).enable(target: weakest#think)` is armed. When YARV next enters that method, the hook fires *inside the call* (`caller_locations` shows `genome:2:block in <compiled>`) and `define_method`s a mutated copy of the apex genome. The in-flight call finishes on the old bytecode and the next call runs the new one. Both return values and the before/after disasm are logged in `run_log.txt`. **Real.** |
 | **Apex disasm panel** | `RubyVM::InstructionSequence.of(apex.mind.class.instance_method(:think)).disasm`, i.e. the live method. **Real.** (The scrolling highlight bar is decoration, not a program counter.) |
 | **Opcode rain** | Opcode names sampled from genomes compiled moments ago. **Real data, decorative motion.** |
@@ -257,7 +257,8 @@ identical (same seeds, same mutation rate, brains still executed) except that ge
 affect fitness: actions are randomized and metabolic cost is flat.
 
 The confirmatory run was **pre-registered** ([docs/preregistration.md](docs/preregistration.md),
-committed before any of its data existed): hypotheses, seeds 201-220, n = 20 per arm, the test
+committed in `316a27f`, two minutes before the results commit `a6aed90`; git shows the commit
+order, not when the run itself happened): hypotheses, seeds 201-220, n = 20 per arm, the test
 (two-sided permutation test on the difference of means, Monte Carlo with 100,000 seeded
 relabelings, Holm correction) and the decision rule. Effect sizes come with 95% percentile
 bootstrap CIs (10,000 resamples). Common-garden assay: top 8 species per population
@@ -299,11 +300,12 @@ slow reference stepper, mutation testing, fuzzing under ASan/UBSan, a Lean 4 spe
 invariants, CBMC proofs on the C kernel, Kani harnesses, pre-registered statistics, release
 provenance, and an open call for replications.
 
-Status in v0.4.0, from the recorded runs: 10 layers verified on the dev box; 3 partial
-(mutation testing covers the Ruby side only, 88.5%; formal methods: Lean 31/31 theorems and
-CBMC 5/6 harnesses, but the whole-tick CBMC harness did not finish and Kani runs in CI only;
-replication so far comes from the dev box alone); 1 not run yet (release provenance needs a
-pushed tag on GitHub). Per-layer detail and reasons: [docs/verification.md](docs/verification.md).
+Status, from the recorded runs: 10 layers verified on the dev box; 4 partial (mutation
+testing covers the Ruby side only, 88.5%; formal methods: Lean 31/31 theorems and CBMC 5/6
+harnesses, but the whole-tick CBMC harness did not finish and Kani runs in CI only; release
+provenance: checksums and the source tarball check out and every asset has an attestation,
+but the signatures were not verified here; replication so far comes from the author's own
+machines only). Per-layer detail and reasons: [docs/verification.md](docs/verification.md).
 Replicate it: [REPLICATION.md](REPLICATION.md).
 
 ## Found along the way

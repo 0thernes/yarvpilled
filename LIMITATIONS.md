@@ -35,15 +35,21 @@ is as welcome as a replication ([REPLICATION.md](REPLICATION.md)).
   positions timed out at 600 s. Finer placements are covered by exhaustive execution
   (`formal/cbmc/lattice.sh`, 5,308,416 ticks), which is testing, not proof. Recorded in
   [docs/verification/cbmc.json](docs/verification/cbmc.json).
-- **Cross-platform bit-identity is tested on Linux x86-64 only so far.** macOS/arm64 and
-  Windows have CI jobs and a replication workflow, but no recorded replication yet. The only
-  replications are from the dev box, the same hardware as the original runs.
-- **Provenance is wired up but unexercised.** The release workflow's checksums and build
-  attestation run only when a `v*` tag reaches GitHub.
+- **Cross-platform bit-identity is barely tested.** The native backends are compared on
+  Linux x86-64 only. One other platform has replicated: the author's Windows 11 PC, pure Ruby
+  only (9/9 bit for bit). macOS/arm64 has CI jobs and a replication workflow but no recorded
+  replication, and nobody outside the project has replicated anything yet.
+- **Provenance is checked only in part.** The v0.4.0 release assets match `SHA256SUMS`, the
+  source tarball re-builds bit for bit from the tag, and GitHub lists an attestation for each
+  asset, but nobody has verified the Sigstore signatures yet (`gh attestation verify`).
+- **Pre-registration is shown by commit order.** The plan (`316a27f`) was committed two minutes
+  before the results (`a6aed90`). The simulation is deterministic and the run took 22.7 s, so
+  git can show that the plan came first in history, not that nobody ran the seeds earlier.
 - **One libm dependence remains.** Direction vectors come from literal IEEE-754 tables, but
   `Simulation#fertility_bytes` still calls `Math.cos`, `Math.sin` and `Math.exp` once at
   startup. A libm that rounds differently (another OS, another libc) could produce a different
-  fertility map and therefore different checksums. The world kernels themselves would still
+  fertility map and therefore different checksums. glibc (the dev box) and the Windows UCRT
+  build of Ruby 3.4.9 agree so far; macOS has not been checked. The world kernels themselves would still
   agree with each other.
 - **Grid-seam quirk.** When the world size is not a multiple of the 24-unit grid cell (the
   default height 512 is not), creatures on opposite sides of the seam can miss each other in

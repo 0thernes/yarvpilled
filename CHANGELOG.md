@@ -6,6 +6,43 @@ and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+A hardening pass over every file: code, docs, CI and the claims ledger. No simulation,
+kernel or result changed; every recorded number still reproduces bit for bit.
+
+### Fixed
+- **CI was red on v0.4.0.** `actions/checkout` fetches one commit, so the git check that the
+  pre-registration predates the results failed on Linux and macOS. CI now fetches full history,
+  and the test skips with a message on a shallow clone instead of failing.
+- **The test suite hung on Windows.** With Ruby 3.4 on Windows, minitest's idle parallel-executor
+  threads deadlocked the Ractor expert vote at tick 120 (standalone runs were fine).
+  `test_helper.rb` sets `MT_CPU=0` on Windows; the suite passes there (59 runs, 0 failures).
+- **Checkout paths containing `[ ]` broke two tools.** `tools/claims.rb` (test and theorem counts)
+  and the Rakefile (native library lookup) passed absolute paths to `Dir[]`, which reads brackets
+  as a glob class. Both now glob with `base:`.
+- README badges: claims 24 -> 25; the YJIT docs link (404) now points at the 3.4 docs.
+- README: `rake control` defaults are the pre-registered run (20 seeds from 201, 4000 ticks);
+  energy drain per tick is `3 + cost` (+3 dashing), not just the genome cost.
+- FAQ: the selection answer quoted the 8-seed pilot; it now gives the pre-registered numbers.
+  The Rust-vs-C/asm gap is 11% / 17% on the recorded kernel-only medians.
+- `SECURITY.md` listed 0.3.x as the supported line; it is 0.4.x.
+- The property-case count in the verification ladder missed tests that use a named constant;
+  it is 7,650 (x `PROP_SCALE`), plus 1,500 Lean-mirror cases when Lean is installed.
+- `.gitattributes` comment said CRLF on Windows; the rules force LF everywhere.
+
+### Changed
+- Pre-registration is described as what git can show: the plan commit (`316a27f`) precedes the
+  results commit (`a6aed90`). Git shows commit order, not when the run happened.
+- Layer 12 (provenance) is now **partial**, not "not run": the v0.4.0 release workflow ran,
+  `sha256sum -c` passes on its assets, `git archive` reproduces the source tarball and GitHub
+  lists an attestation per asset; the attestation signatures were not verified here.
+- Layer 14 adds a third machine: the author's Windows 11 PC, pure Ruby, 9/9 recorded numbers bit
+  for bit (`docs/replications/alex-pc-win11-ruby349-pure.json`). Still no outside replication.
+- The Replicate workflow is described as it is: manual or monthly, never on push.
+
+### Added
+- Tests that the README badges match their counts, and that the README BibTeX and the Lean
+  package carry the current version.
+
 ## [0.4.0] - 2026-11-22
 
 A 14-layer verification ladder: every attempt we could make to prove this project wrong, with

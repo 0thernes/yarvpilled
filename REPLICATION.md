@@ -34,11 +34,14 @@ and paste `out/replication.json`. Failed checks are especially welcome.
 |---|---|---|---|---|---|---|---|
 | 1 | dev box (author) | 2026-11-23 | x86_64-linux, 8 vCPU Intel Xeon (container) | 3.4.7 + YJIT | c, asm, rust, ruby | 15/15 bit for bit | `docs/replications/box-ruby34.json` |
 | 2 | dev box (author) | 2026-11-23 | x86_64-linux, same box | 3.4.7, `YARVPILLED_PURE=1` | ruby | 9/9 bit for bit | `docs/replications/box-ruby34-pure.json` |
-| 3 | GitHub Actions ubuntu-latest | pending | | 3.4 | | run the `Replicate` workflow | artifact |
-| 4 | GitHub Actions macos-latest (arm64) | pending | | 3.4 | | run the `Replicate` workflow | artifact |
-| 5 | GitHub Actions windows-latest | pending | | 3.4 | | run the `Replicate` workflow | artifact |
+| 3 | author's PC (MSI) | 2026-11-25 | x64-mingw-ucrt, Windows 11, Intel Core Ultra 9 275HX (24 threads) | 3.4.9, no YJIT | ruby (no C compiler installed) | 9/9 bit for bit | `docs/replications/alex-pc-win11-ruby349-pure.json` |
+| 4 | GitHub Actions ubuntu-latest | pending | | 3.4 | | run the `Replicate` workflow | artifact |
+| 5 | GitHub Actions macos-latest (arm64) | pending | | 3.4 | | run the `Replicate` workflow | artifact |
+| 6 | GitHub Actions windows-latest | pending | | 3.4 | | run the `Replicate` workflow | artifact |
 | | *you?* | | | | | | |
 
 Entries 1-2 share hardware with the original runs, so they show the numbers are
-reproducible from a clean build, not that they are portable. The CI runners are the first
-independent hardware; humans on other machines are what this table is for.
+reproducible from a clean build, not that they are portable. Entry 3 is the first other OS,
+CPU, libm and Ruby patch version (run at commit `696778c`, pure Ruby only), but it is still the
+author's machine. The CI runners would be the first hardware nobody involved owns; humans on
+other machines are what this table is for.

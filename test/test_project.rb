@@ -16,6 +16,12 @@ class TestProject < Minitest::Test
     assert_match(/^version: "#{Regexp.escape(Yarvpilled::VERSION)}"$/, File.read(File.join(ROOT, "CITATION.cff")))
   end
 
+  def test_readme_citation_and_lean_package_carry_the_version
+    v = Regexp.escape(Yarvpilled::VERSION)
+    assert_match(/^  version = \{#{v}\},$/, File.read(File.join(ROOT, "README.md")), "README BibTeX version")
+    assert_match(/^version = "#{v}"$/, File.read(File.join(ROOT, "formal/lean/lakefile.toml")), "Lean package version")
+  end
+
   def test_semver
     assert_match(/\A\d+\.\d+\.\d+\z/, Yarvpilled::VERSION)
   end
