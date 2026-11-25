@@ -340,7 +340,7 @@ reads [CITATION.cff](CITATION.cff).
   author  = {0thernes},
   title   = {yarvpilled: an A-Life world where every brain is a live YARV instruction sequence},
   year    = {2026},
-  version = {0.4.0},
+  version = {0.4.1},
   url     = {https://github.com/0thernes/yarvpilled},
   license = {MIT}
 }

@@ -18,7 +18,7 @@ commit, in this repository.
 ## Verify a download
 
 ```sh
-v=0.4.0
+v=0.4.1
 gh release download "v$v" -R 0thernes/yarvpilled -D yarvpilled-$v && cd yarvpilled-$v
 
 # 1. integrity: the files match the published checksums

@@ -6,8 +6,11 @@ and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-A hardening pass over every file: code, docs, CI and the claims ledger. No simulation,
-kernel or result changed; every recorded number still reproduces bit for bit.
+## [0.4.1] - 2026-11-24
+
+A hardening pass over every file: code, docs, CI and the claims ledger. No simulation rule or
+recorded result changed (the C glue and rasterizer now only widen or reject out-of-range
+values), and every recorded number still reproduces bit for bit.
 
 ### Fixed
 - **CI was red on v0.4.0.** `actions/checkout` fetches one commit, so the git check that the
@@ -204,7 +207,8 @@ when this tag reaches GitHub). Status and reasons per layer:
 - Worked around a YJIT 3.4.7 panic on fixed-arity cfuncs with more than 5 arguments by exposing
   those C entry points as variadic.
 
-[Unreleased]: https://github.com/0thernes/yarvpilled/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/0thernes/yarvpilled/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/0thernes/yarvpilled/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/0thernes/yarvpilled/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/0thernes/yarvpilled/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/0thernes/yarvpilled/releases/tag/v0.2.0
