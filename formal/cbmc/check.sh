@@ -2,7 +2,7 @@
 # Run every CBMC harness in harness.c. Prints one line per harness and exits non-zero if any fails.
 # Usage: formal/cbmc/check.sh [timeout-seconds-per-harness]   (default 600)
 set -u
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" || exit 1
 T="${1:-600}"
 FLAGS=(--bounds-check --pointer-check --div-by-zero-check --signed-overflow-check
        --conversion-check --float-overflow-check --nan-check --unwind 12 --unwinding-assertions)

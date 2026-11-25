@@ -94,7 +94,7 @@ ruby --yjit yarv_brain.rb --tui
 xcode-select --install                                  # clang + make
 brew install ruby ffmpeg rust                           # Homebrew Ruby (3.4) is YJIT-enabled
 git clone https://github.com/0thernes/yarvpilled && cd yarvpilled
-rake compile && rake test                               # :asm is x86-64 Linux only; on arm64 it uses the C scan
+rake compile && rake test                               # :asm needs x86-64 Linux/BSD; on macOS it uses the C scan
 ruby --yjit yarv_brain.rb --tui
 ```
 

@@ -44,7 +44,7 @@ body:
   - type: textarea
     id: bench
     attributes:
-      label: Optional: `rake bench` / `rake control` results
+      label: "Optional: `rake bench` / `rake control` results"
       description: out/bench.md or out/control.md, if you ran them. Ratios matter more than absolute speed.
   - type: textarea
     id: notes

@@ -22,6 +22,36 @@ class TestProject < Minitest::Test
     assert_match(/^version = "#{v}"$/, File.read(File.join(ROOT, "formal/lean/lakefile.toml")), "Lean package version")
   end
 
+  def test_yaml_and_json_files_parse
+    require "yaml"
+    require "json"
+    # An unquoted "label: Optional: ..." once made the replication issue form invalid YAML,
+    # which GitHub hides instead of reporting.
+    Dir.glob("{.github/**/*.yml,CITATION.cff}", base: ROOT).each do |f|
+      YAML.safe_load_file(File.join(ROOT, f))
+    rescue Psych::SyntaxError => e
+      flunk "#{f}: #{e.message}"
+    end
+    Dir.glob("{docs,bench}/**/*.json", base: ROOT).each do |f|
+      JSON.parse(File.read(File.join(ROOT, f)))
+    rescue JSON::ParserError => e
+      flunk "#{f}: #{e.message}"
+    end
+  end
+
+  def test_native_energy_uses_all_64_bits
+    skip "native extension not built" unless Yarvpilled::Native::AVAILABLE
+    # Windows uses LLP64: C long is 32 bits even on x86-64. NUM2LONG/LONG2NUM silently
+    # narrowed int64 energy in snapshot/split (or rejected it at spawn/feed).
+    w = Yarvpilled::Native::World.new(160, 160, 8, 8, :c)
+    slot = w.spawn(10.0, 10.0, 0, 1 << 40, 1, 1)
+    assert_equal 1 << 40, w.snapshot[4]
+    w.feed(slot, 1 << 40)
+    assert_equal 1 << 41, w.snapshot[4]
+    assert_equal (1 << 40) - 20, w.split(slot)
+    assert_equal 1 << 40, w.snapshot[4]
+  end
+
   def test_semver
     assert_match(/\A\d+\.\d+\.\d+\z/, Yarvpilled::VERSION)
   end

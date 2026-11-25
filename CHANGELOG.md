@@ -27,6 +27,14 @@ kernel or result changed; every recorded number still reproduces bit for bit.
 - `SECURITY.md` listed 0.3.x as the supported line; it is 0.4.x.
 - The property-case count in the verification ladder missed tests that use a named constant;
   it is 7,650 (x `PROP_SCALE`), plus 1,500 Lean-mirror cases when Lean is installed.
+- **Native energy was narrowed to 32 bits on Windows.** The C glue converted the `int64_t`
+  energy and tick/eaten/death counters with `NUM2LONG`/`LONG2NUM`; C `long` is 32 bits on
+  Windows, so values past 2^31 were truncated (snapshot, split, stats) or rejected (spawn,
+  feed). It now uses `NUM2LL`/`LL2NUM`. Recorded runs never reach 2^31, so no number changes.
+- The replication issue form was invalid YAML (an unquoted `label: Optional: ...`), so GitHub
+  could not show it. A test now parses every workflow, issue form, `CITATION.cff` and data file.
+- README: the asm scan runs on x86-64 Linux/BSD; macOS (Intel too) uses the C scan.
+- `formal/cbmc/check.sh` exits if its `cd` fails.
 - `.gitattributes` comment said CRLF on Windows; the rules force LF everywhere.
 
 ### Changed

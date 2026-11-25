@@ -206,7 +206,7 @@ static VALUE world_spawn(VALUE self, VALUE vx, VALUE vy, VALUE vh, VALUE ve, VAL
   }
   w->x[slot] = wrapd(px, w->w); w->y[slot] = wrapd(py, w->h);
   w->heading[slot] = NUM2INT(vh) & (NDIR - 1);
-  w->energy[slot] = NUM2LONG(ve); w->species[slot] = NUM2INT(vs); w->cost[slot] = NUM2INT(vc);
+  w->energy[slot] = NUM2LL(ve); w->species[slot] = NUM2INT(vs); w->cost[slot] = NUM2INT(vc);
   w->age[slot] = 0; w->alive[slot] = 1; w->last_action[slot] = 0;
   return INT2FIX(slot);
 }
@@ -216,20 +216,21 @@ static VALUE world_spawn_v(int argc, VALUE *argv, VALUE self) {
   return world_spawn(self, argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
+/* Energy is int64_t; NUM2LL/LL2NUM (not LONG) keep it 64-bit where long is 32 bits (Windows). */
 /* split(slot) -> energy handed to the child (parent keeps half) */
 static VALUE world_split(VALUE self, VALUE vi) {
   World *w = get_world(self);
   int i = NUM2INT(vi);
   if (i < 0 || i >= w->used || !w->alive[i]) return INT2FIX(0);
-  long half = w->energy[i] / 2;
+  int64_t half = w->energy[i] / 2;
   w->energy[i] -= half;
-  return LONG2NUM(half - 20);
+  return LL2NUM(half - 20);
 }
 
 static VALUE world_feed(VALUE self, VALUE vi, VALUE amt) {
   World *w = get_world(self);
   int i = NUM2INT(vi);
-  if (i >= 0 && i < w->used && w->alive[i]) w->energy[i] += NUM2LONG(amt);
+  if (i >= 0 && i < w->used && w->alive[i]) w->energy[i] += NUM2LL(amt);
   return Qnil;
 }
 
@@ -269,7 +270,7 @@ static VALUE world_snapshot(VALUE self) {
     rb_ary_push(out, DBL2NUM(w->x[i]));
     rb_ary_push(out, DBL2NUM(w->y[i]));
     rb_ary_push(out, INT2FIX(w->heading[i]));
-    rb_ary_push(out, LONG2NUM(w->energy[i]));
+    rb_ary_push(out, LL2NUM(w->energy[i]));
     rb_ary_push(out, INT2FIX(w->species[i]));
     rb_ary_push(out, INT2FIX(w->age[i]));
     rb_ary_push(out, INT2FIX(w->last_action[i]));
@@ -291,9 +292,9 @@ static VALUE world_stats(VALUE self) {
   long food = 0; for (int c = 0; c < w->fw * w->fh; c++) food += w->food[c];
   rb_hash_aset(h, ID2SYM(rb_intern("alive")), INT2FIX(alive));
   rb_hash_aset(h, ID2SYM(rb_intern("food")), LONG2NUM(food));
-  rb_hash_aset(h, ID2SYM(rb_intern("eaten")), LONG2NUM(w->eaten_total));
-  rb_hash_aset(h, ID2SYM(rb_intern("deaths")), LONG2NUM(w->deaths_total));
-  rb_hash_aset(h, ID2SYM(rb_intern("ticks")), LONG2NUM(w->ticks));
+  rb_hash_aset(h, ID2SYM(rb_intern("eaten")), LL2NUM(w->eaten_total));
+  rb_hash_aset(h, ID2SYM(rb_intern("deaths")), LL2NUM(w->deaths_total));
+  rb_hash_aset(h, ID2SYM(rb_intern("ticks")), LL2NUM(w->ticks));
   return h;
 }
 
