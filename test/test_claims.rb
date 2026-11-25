@@ -74,9 +74,11 @@ class TestClaims < Minitest::Test
 
   # C-CTRL-3: the pre-registration commit is an ancestor of the commit that added the results.
   def test_preregistration_precedes_results
-    skip "not a git checkout" unless File.directory?(File.join(ROOT, ".git"))
+    skip "not a git checkout" unless File.exist?(File.join(ROOT, ".git"))
 
     git = ->(*a) { Open3.capture2("git", "-C", ROOT, *a).first.strip }
+    # A shallow clone (CI's default fetch-depth: 1) shows both files as added in its one commit.
+    skip "shallow clone: run `git fetch --unshallow` to check C-CTRL-3" if git.("rev-parse", "--is-shallow-repository") == "true"
     prereg = git.("log", "--diff-filter=A", "--format=%H", "--", "docs/preregistration.md").lines.last&.strip
     results = git.("log", "--format=%H", "-S", '"seed": 220', "--", "docs/control.json").lines.last&.strip
     skip "history too shallow" if prereg.to_s.empty? || results.to_s.empty?

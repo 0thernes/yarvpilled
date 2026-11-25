@@ -28,6 +28,8 @@ jobs:
       YP_STRICT: "1" # a failed native build fails CI instead of falling back
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history: test_claims checks that the pre-registration predates the results
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
@@ -53,6 +55,8 @@ jobs:
       YP_STRICT: "1"
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history: test_claims checks that the pre-registration predates the results
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.4"
@@ -73,6 +77,8 @@ jobs:
     continue-on-error: true # experimental: keeps the workflow green while Windows support matures
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history: test_claims checks that the pre-registration predates the results
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.4"

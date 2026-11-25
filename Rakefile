@@ -31,7 +31,10 @@ WINDOWS = RbConfig::CONFIG["host_os"].match?(/mswin|mingw|cygwin/)
 RUST_DIR = File.join(ROOT, "ext/yarvpilled_rust")
 RUST_LIB = File.join(RUST_DIR, "target/release/libyarvpilled_rust.a")
 BUILD = File.join(ROOT, "tmp/build")
-SO_GLOB = File.join(ROOT, "lib/yarvpilled/yarvpilled_native.{so,bundle,dll}")
+# Globbed with base: so a checkout path containing glob characters ([ ] { } * ?) still matches.
+SO_DIR = File.join(ROOT, "lib/yarvpilled")
+SO_PATTERN = "yarvpilled_native.{so,bundle,dll}"
+def native_libs = Dir.glob(SO_PATTERN, base: SO_DIR).map { File.join(SO_DIR, _1) }
 STRICT = ENV["YP_STRICT"] == "1"
 
 def yjit_flag
@@ -66,7 +69,7 @@ desc "Compile the ruby.h C extension (+asm, +Rust) into lib/yarvpilled/; falls b
 task compile: :rust do
   FileUtils.rm_rf(BUILD)
   FileUtils.mkdir_p(BUILD)
-  Dir.glob(SO_GLOB).each { FileUtils.rm_f(_1) }
+  native_libs.each { FileUtils.rm_f(_1) }
   begin
     Dir.chdir(BUILD) do
       env = File.exist?(RUST_LIB) && !WINDOWS && ENV["YP_NO_RUST"] != "1" ? { "YP_RUST_LIB" => RUST_LIB } : {}
@@ -137,7 +140,7 @@ task :clean do
   FileUtils.rm_rf(File.join(ROOT, "_site"))
   FileUtils.rm_rf(File.join(ROOT, "pkg"))
   FileUtils.rm_rf(File.join(RUST_DIR, "target"))
-  Dir.glob(SO_GLOB).each { FileUtils.rm_f(_1) }
+  native_libs.each { FileUtils.rm_f(_1) }
 end
 
 desc "Run the whole test suite against an ASan+UBSan build of the C extension (Linux), then rebuild normally (RECORD=1 writes docs/verification/sanitize.json)"
@@ -155,7 +158,7 @@ task :sanitize do
       env["YP_RUST_LIB"] = RUST_LIB if File.exist?(RUST_LIB)
       sh env, RUBY, File.join(ROOT, "ext/yarvpilled_native/extconf.rb")
       sh "make"
-      Dir.glob(SO_GLOB).each { FileUtils.rm_f(_1) }
+      native_libs.each { FileUtils.rm_f(_1) }
       FileUtils.cp("yarvpilled_native.so", File.join(ROOT, "lib/yarvpilled/"))
     end
     # use_sigaltstack=0: Ruby installs its own alternate signal stack; ASan's

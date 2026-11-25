@@ -144,8 +144,8 @@ module Yarvpilled
       sa = v.("docs/verification/sanitize.json")
       cb = v.("docs/verification/cbmc.json")
       la = v.("docs/verification/lattice.json")
-      cases = Dir[File.join(ROOT, "test/test_*.rb")].sum { File.read(_1).scan(/Prop\.check\("[^"]+", cases: ([\d_]+)\)/).sum { |(n)| n.delete("_").to_i } }
-      thms = Dir[File.join(ROOT, "formal/lean/Yarvpilled/*.lean")].sum { File.read(_1).scan(/^theorem /).size }
+      cases = Dir.glob("test/test_*.rb", base: ROOT).sum { File.read(File.join(ROOT, _1)).scan(/Prop\.check\("[^"]+", cases: ([\d_]+)\)/).sum { |(n)| n.delete("_").to_i } }
+      thms = Dir.glob("formal/lean/Yarvpilled/*.lean", base: ROOT).sum { File.read(File.join(ROOT, _1)).scan(/^theorem /).size }
       kani = File.read(File.join(ROOT, "ext/yarvpilled_rust/src/proofs.rs")).scan(/kani::proof\)\]/).size
       claims = File.read(File.join(ROOT, "CLAIMS.md")).scan(/^\| (C-[A-Z]+-\d+) /).flatten.uniq.size
       out = +"| evidence | value | source |\n|---|---|---|\n"
