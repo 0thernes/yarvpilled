@@ -33,6 +33,12 @@ kernel or result changed; every recorded number still reproduces bit for bit.
   feed). It now uses `NUM2LL`/`LL2NUM`. Recorded runs never reach 2^31, so no number changes.
 - The replication issue form was invalid YAML (an unquoted `label: Optional: ...`), so GitHub
   could not show it. A test now parses every workflow, issue form, `CITATION.cff` and data file.
+- **The v0.4.0 GitHub Release notes were cut off after one paragraph.** The Release workflow's
+  extractor stopped at any line starting with `[`, and the 0.4.0 notes have a body line that
+  starts with a Markdown link. Extraction moved to `tools/release_notes.rb`, which stops only at
+  the next version heading or the link definitions; a test checks every section comes out whole.
+  (The published v0.4.0 release body itself is unchanged.)
+- CONTRIBUTING's release steps now list every file that carries the version.
 - README: the asm scan runs on x86-64 Linux/BSD; macOS (Intel too) uses the C scan.
 - `formal/cbmc/check.sh` exits if its `cd` fails.
 - `.gitattributes` comment said CRLF on Windows; the rules force LF everywhere.

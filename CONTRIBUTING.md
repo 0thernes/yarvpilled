@@ -21,8 +21,10 @@ Three rules:
 Stdlib only, no runtime gems. Add a line under `[Unreleased]` in `CHANGELOG.md`. CI is
 informational and never blocks a merge.
 
-To release: bump `VERSION` and `lib/yarvpilled/version.rb`, move the Unreleased notes into a
-version section, then `git tag -a vX.Y.Z -m vX.Y.Z && git push --follow-tags`. The Release
-workflow publishes the notes.
+To release: bump the version in `VERSION`, `lib/yarvpilled/version.rb`, `CITATION.cff` (plus
+`date-released`), the README BibTeX block and `formal/lean/lakefile.toml` (`test_project.rb`
+checks they agree). Move the Unreleased notes into a version section and add its compare link,
+then `git tag -a vX.Y.Z -m vX.Y.Z && git push --follow-tags`. The Release workflow publishes
+the notes and the assets.
 
 By contributing you agree to the [MIT License](LICENSE) and the [Code of Conduct](CODE_OF_CONDUCT.md).

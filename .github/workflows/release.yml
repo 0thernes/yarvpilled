@@ -30,12 +30,7 @@ jobs:
           test "$tag" = "$file" && test "$tag" = "$const"
       - name: Extract release notes from CHANGELOG.md
         run: |
-          ruby -e '
-            v = ENV.fetch("GITHUB_REF_NAME").delete_prefix("v")
-            body = File.read("CHANGELOG.md")[/^## \[#{Regexp.escape(v)}\].*?\n(.*?)(?=^## \[|^\[)/m, 1]
-            abort "no CHANGELOG entry for #{v}" unless body
-            File.write("release-notes.md", body.strip + "\n")
-          '
+          ruby tools/release_notes.rb "${GITHUB_REF_NAME#v}" > release-notes.md
           cat release-notes.md
       - name: Build release assets
         run: |

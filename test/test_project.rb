@@ -52,6 +52,19 @@ class TestProject < Minitest::Test
     assert_equal 1 << 40, w.snapshot[4]
   end
 
+  def test_release_notes_cover_each_whole_changelog_section
+    require_relative "../tools/release_notes"
+    log = File.read(File.join(ROOT, "CHANGELOG.md"))
+    versions = log.scan(/^## \[(\d+\.\d+\.\d+)\]/).flatten
+    refute_empty versions
+    versions.each do |v|
+      body = ReleaseNotes.extract(log, v)
+      section = log[/^## \[#{Regexp.escape(v)}\][^\n]*\n(.*?)(?=^## \[|^\[\d|^\[Unreleased\]:|\z)/m, 1].strip
+      # v0.4.0 shipped with its notes cut at a body line starting with "[docs/...](...)".
+      assert_equal section, body, "release notes for #{v} must be the whole section"
+    end
+  end
+
   def test_semver
     assert_match(/\A\d+\.\d+\.\d+\z/, Yarvpilled::VERSION)
   end
