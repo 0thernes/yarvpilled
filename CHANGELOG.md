@@ -60,7 +60,7 @@ kernel or result changed; every recorded number still reproduces bit for bit.
 - The Replicate workflow is described as it is: manual or monthly, never on push.
 
 ### Added
-- Tests that the README badges match their counts, and that the README BibTeX and the Lean
+- Tests that the README badges and the verified/partial status line match their data, and that the README BibTeX and the Lean
   package carry the current version.
 
 ## [0.4.0] - 2026-11-22

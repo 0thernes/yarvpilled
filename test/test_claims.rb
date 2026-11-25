@@ -94,6 +94,9 @@ class TestClaims < Minitest::Test
     assert readme.include?("badge/claims-#{ids}%20mapped%20to%20tests"), "claims badge != #{ids} claim IDs in CLAIMS.md"
     assert readme.include?("badge/Lean%204-#{thms}%20theorems"), "Lean badge != #{thms} theorems"
     assert readme.include?("badge/verification-#{layers}%20layers"), "ladder badge != #{layers} layers in docs/verification.md"
+    status = read("docs/verification.md").scan(/^\| \d+ \| [^|]+ \| (verified|partial|not run here) \|/).flatten.tally
+    want = "#{status['verified']} layers verified on the dev box; #{status['partial']} partial"
+    assert readme.gsub(/\s+/, " ").include?(want), "README status line != ladder table (#{status})"
   end
 
   # The claim map is consistent: IDs unique, README IDs exist, referenced tests exist.
