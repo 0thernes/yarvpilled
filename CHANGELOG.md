@@ -45,6 +45,8 @@ kernel or result changed; every recorded number still reproduces bit for bit.
 - ADR 0006 notes that its n = 8 and exact-test figures are the pilot's; the README quotes the
   pre-registered n = 20 Monte Carlo permutation run.
 - CONTRIBUTING's release steps now list every file that carries the version.
+- README: the limitations summary said Windows was CI-only; it has a recorded pure-Ruby
+  replication on the author's PC.
 - README: the asm scan runs on x86-64 Linux/BSD; macOS (Intel too) uses the C scan.
 - `formal/cbmc/check.sh` exits if its `cd` fails.
 - `.gitattributes` comment said CRLF on Windows; the rules force LF everywhere.
@@ -60,8 +62,8 @@ kernel or result changed; every recorded number still reproduces bit for bit.
 - The Replicate workflow is described as it is: manual or monthly, never on push.
 
 ### Added
-- Tests that the README badges and the verified/partial status line match their data, and that the README BibTeX and the Lean
-  package carry the current version.
+- Tests that the README badges and the verified/partial status line match their data, and that
+  the README BibTeX and the Lean package carry the current version.
 
 ## [0.4.0] - 2026-11-22
 

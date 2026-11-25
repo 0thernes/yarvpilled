@@ -287,8 +287,8 @@ generations).
 ## Limitations
 
 The short version: one benchmark machine (busy, virtualized), one assay arena, about 10-15
-generations, events-on runs aren't bit-reproducible, Windows and macOS are CI-only, and the Lean
-proofs cover the integer bookkeeping, not the floating-point geometry. "Consciousness" and
+generations, events-on runs aren't bit-reproducible, macOS is checked only by CI and Windows
+only in pure Ruby on the author's PC, and the Lean proofs cover the integer bookkeeping, not the floating-point geometry. "Consciousness" and
 "hive-mind" are labels for the visuals. The full list, and **what would prove us wrong**:
 [LIMITATIONS.md](LIMITATIONS.md).
 
