@@ -31,6 +31,10 @@ kernel or result changed; every recorded number still reproduces bit for bit.
   energy and tick/eaten/death counters with `NUM2LONG`/`LONG2NUM`; C `long` is 32 bits on
   Windows, so values past 2^31 were truncated (snapshot, split, stats) or rejected (spawn,
   feed). It now uses `NUM2LL`/`LL2NUM`. Recorded runs never reach 2^31, so no number changes.
+- **The C rasterizer trusted its size arguments.** Negative or overflowing buffer sizes passed
+  the length check (products were computed in `long`, 32 bits on Windows), and `heat` with zero
+  columns or rows divided by zero. Sizes are now checked in 64-bit and must be positive; bad
+  sizes raise `ArgumentError`. The renderer's own calls are unchanged.
 - The replication issue form was invalid YAML (an unquoted `label: Optional: ...`), so GitHub
   could not show it. A test now parses every workflow, issue form, `CITATION.cff` and data file.
 - **The v0.4.0 GitHub Release notes were cut off after one paragraph.** The Release workflow's
@@ -38,6 +42,8 @@ kernel or result changed; every recorded number still reproduces bit for bit.
   starts with a Markdown link. Extraction moved to `tools/release_notes.rb`, which stops only at
   the next version heading or the link definitions; a test checks every section comes out whole.
   (The published v0.4.0 release body itself is unchanged.)
+- ADR 0006 notes that its n = 8 and exact-test figures are the pilot's; the README quotes the
+  pre-registered n = 20 Monte Carlo permutation run.
 - CONTRIBUTING's release steps now list every file that carries the version.
 - README: the asm scan runs on x86-64 Linux/BSD; macOS (Intel too) uses the C scan.
 - `formal/cbmc/check.sh` exits if its `cd` fails.

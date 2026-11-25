@@ -42,6 +42,20 @@ class TestNegative < Minitest::Test
     end
   end
 
+  def test_bad_raster_sizes_raise_instead_of_overrunning
+    skip "native extension not built" unless Yarvpilled::Native::AVAILABLE
+    r = Yarvpilled::Native::Raster
+    buf = "\0".b * (8 * 8 * 3)
+    pal = "\0".b * 768
+    assert_raises(ArgumentError) { r.fill(buf, -8, -8, 1, 2, 3) }            # negative dims
+    assert_raises(ArgumentError) { r.fill(buf, 1 << 30, 1 << 30, 1, 2, 3) }  # product overflows 32 bits
+    assert_raises(ArgumentError) { r.heat(buf, 8, 8, "", 0, 0, 2, 0, 0, pal) } # was a divide by zero
+    assert_raises(ArgumentError) { r.heat(buf, 8, 8, "\1" * 4, -2, -2, 2, 0, 0, pal) }
+    assert_raises(ArgumentError) { r.text(buf, 8, 8, "", 0, 8, 32, 96, "a", 0, 0, 1, 1, 1, 255) }
+    assert_raises(ArgumentError) { r.blit_add(buf, 8, 8, "", -4, -4, 0, 0) }
+    assert_same buf, r.fill(buf, 8, 8, 1, 2, 3)
+  end
+
   def test_bad_fertility_rejected
     kinds.each do |k|
       w = Yarvpilled::World.build(k, 96, 96, 8, 4)

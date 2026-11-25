@@ -7,6 +7,7 @@
 #include <ruby.h>
 #include <math.h>
 #include <string.h>
+#include <limits.h>
 
 typedef struct { unsigned char *p; int w, h; } Buf;
 
@@ -15,7 +16,8 @@ static Buf get_buf(VALUE str, VALUE vw, VALUE vh) {
   StringValue(str);
   rb_str_modify(str);
   b.w = NUM2INT(vw); b.h = NUM2INT(vh);
-  if (RSTRING_LEN(str) < (long)b.w * b.h * 3) rb_raise(rb_eArgError, "buffer too small");
+  /* sizes are checked in 64-bit (long is 32 bits on Windows); bad sizes raise instead of overrunning */
+  if (b.w <= 0 || b.h <= 0 || RSTRING_LEN(str) < (long long)b.w * b.h * 3) rb_raise(rb_eArgError, "buffer too small");
   b.p = (unsigned char *)RSTRING_PTR(str);
   return b;
 }
@@ -192,7 +194,9 @@ static VALUE r_text(int argc, VALUE *argv, VALUE m) {
   int x = NUM2INT(argv[9]), y = NUM2INT(argv[10]);
   int r = NUM2INT(argv[11]), g = NUM2INT(argv[12]), bl = NUM2INT(argv[13]), a = NUM2INT(argv[14]);
   const unsigned char *ap = (const unsigned char *)RSTRING_PTR(atlas);
-  long stride = (long)cw * count;
+  if (cw <= 0 || ch <= 0 || count <= 0 || cw > 4096 || ch > 4096 || count > 4096)
+    rb_raise(rb_eArgError, "bad glyph size");
+  long long stride = (long long)cw * count;
   if (RSTRING_LEN(atlas) < stride * ch) rb_raise(rb_eArgError, "atlas too small");
   const unsigned char *sp = (const unsigned char *)RSTRING_PTR(s);
   long n = RSTRING_LEN(s);
@@ -216,7 +220,8 @@ static VALUE r_heat(int argc, VALUE *argv, VALUE m) {
   int cols = NUM2INT(argv[4]), rows = NUM2INT(argv[5]), cell = NUM2INT(argv[6]);
   int ox = NUM2INT(argv[7]), oy = NUM2INT(argv[8]);
   VALUE pal = argv[9]; StringValue(pal);
-  if (RSTRING_LEN(field) < (long)cols * rows || RSTRING_LEN(pal) < 768) rb_raise(rb_eArgError, "bad heat args");
+  if (cols <= 0 || rows <= 0 || cell <= 0 || cell > 4096 || (long long)cols * cell > INT_MAX || (long long)rows * cell > INT_MAX ||
+      RSTRING_LEN(field) < (long long)cols * rows || RSTRING_LEN(pal) < 768) rb_raise(rb_eArgError, "bad heat args");
   const unsigned char *f = (const unsigned char *)RSTRING_PTR(field), *p = (const unsigned char *)RSTRING_PTR(pal);
   int W = cols * cell, H = rows * cell;
   for (int y = 0; y < H; y++) {
@@ -239,7 +244,7 @@ static VALUE r_blit_add(VALUE m, VALUE dst, VALUE vdw, VALUE vdh, VALUE src, VAL
   Buf d = get_buf(dst, vdw, vdh);
   StringValue(src);
   int sw = NUM2INT(vsw), sh = NUM2INT(vsh), dx = NUM2INT(vdx), dy = NUM2INT(vdy);
-  if (RSTRING_LEN(src) < (long)sw * sh * 3) rb_raise(rb_eArgError, "src too small");
+  if (sw < 0 || sh < 0 || RSTRING_LEN(src) < (long long)sw * sh * 3) rb_raise(rb_eArgError, "src too small");
   const unsigned char *s = (const unsigned char *)RSTRING_PTR(src);
   for (int y = 0; y < sh; y++) {
     int ty = y + dy; if (ty < 0 || ty >= d.h) continue;
