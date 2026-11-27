@@ -6,6 +6,20 @@ and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- Build Standard v1.2.0 agent entry points and manifest: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`,
+  `.cursor/rules/build-standard.mdc`, `llms.txt`, `docs/configuration.md`, and `repo.yaml`.
+- `formal/lean/VerifyAxioms.lean`: explicit `#print axioms` audit covering all 31 theorems in
+  `Yarvpilled.Slots` (8) and `Yarvpilled.Spec` (23), confirming strictly standard axioms
+  `[propext, Classical.choice, Quot.sound]`, zero `sorry`/`admit`/`native_decide`, and zero custom axioms.
+- Lean 4.35.0 `module` headers (`@[expose] public section`) on `Yarvpilled.lean`, `Yarvpilled/Slots.lean`,
+  `Yarvpilled/Spec.lean`, and `VerifyAxioms.lean` (`Mirror.lean` stays a non-module executable script so
+  `lake env lean --run Mirror.lean` works cleanly); `formal/lean/check.sh` updated to run
+  `VerifyAxioms.lean`, enforce the strict standard-axiom allowlist, and replay via
+  `lake env leanchecker --fresh Yarvpilled`.
+- Explicit falsification summary section in `CLAIMS.md` and ORCID / independent-researcher metadata in
+  `CITATION.cff`.
+
 ## [0.4.1] - 2026-11-24
 
 A hardening pass over every file: code, docs, CI and the claims ledger. No simulation rule or

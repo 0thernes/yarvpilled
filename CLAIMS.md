@@ -38,3 +38,13 @@ them with `rake bench` and compare shapes (ratios, rankings within noise).
 | C-VER-2 | The C kernel's food-index wrap, torus wrap, short-way delta and crowd scan are memory-safe and overflow-free on the domains of the 5 CBMC harnesses that finished, and no recorded verification run hides a failure (unfinished runs are recorded as TIMEOUT or KILLED, never as passes). | `formal/cbmc/check.sh`, `formal/cbmc/lattice.sh` | `test_claims.rb` (`test_recorded_verification_runs_passed`) |
 
 What these claims do **not** cover, and what would falsify them: [LIMITATIONS.md](LIMITATIONS.md).
+
+## What would prove us wrong (Falsification summary)
+
+Every claim above is falsifiable by concrete checks (full table in [LIMITATIONS.md](LIMITATIONS.md#what-would-prove-us-wrong)):
+
+- **Backend equivalence (`C-EQ-1`, `C-EQ-2`):** refuted if any two backends (C, asm, Rust, pure Ruby) diverge on sensors, births, deaths, or state digests, or if any backend diverges from `formal/lean/Mirror.lean` in `test_formal_mirror.rb`.
+- **Lean formalization (`C-EQ-2`, `C-INV-1`, `C-INV-2`):** refuted if `formal/lean/VerifyAxioms.lean` reports `sorryAx`, any custom axiom, or any axiom outside `[propext, Classical.choice, Quot.sound]`, or if `lake env leanchecker --fresh Yarvpilled` rejects the compiled environment.
+- **Determinism & reproducibility (`C-DET-1`, `C-BENCH-1`, `C-BENCH-2`, `C-CTRL-1`):** refuted if `tools/reproduce.rb` fails on a clean checkout or `test_claims.rb` detects drift between `README.md` and `docs/*.json`.
+- **Benchmarks & control statistics (`C-BENCH-3`..`C-BENCH-6`, `C-CTRL-2`):** refuted if repeated runs on a quiet machine separate native tiers beyond noise, brain share drops well below ~70%, or new pre-registered seeds (e.g. `FIRST_SEED=301`) yield Holm-adjusted `p >= 0.05` or reversed signs for assay fitness or survival.
+- **Grammar, bounds, & safety (`C-INV-3`, `C-NEG-1`..`C-NEG-3`, `C-VER-2`):** refuted if any grammar-valid genome fails to compile/round-trip, any invalid input bypasses validation, or any sanitizer/fuzzer/CBMC check reports a defect.

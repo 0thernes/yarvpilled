@@ -1,0 +1,25 @@
+# yarvpilled
+
+> An A-Life world in CRuby where every creature's brain is a live YARV instruction sequence, with bit-identical Ruby, C, Rust, and x86-64 asm world kernels, pre-registered selection-vs-drift experiments, and a 14-layer verification ladder including Lean 4.35.0 proofs. Follows Build Standard for LLMs v1.2.0.
+
+Start with `AGENTS.md` for canonical commands, hard rules, and known traps.
+
+## Agent instructions
+
+- [AGENTS.md](AGENTS.md): canonical agent instructions, commands, hard rules (R1–R8), finding classes, and known traps
+
+## Verification and integrity
+
+- [CLAIMS.md](CLAIMS.md): 25 claim IDs mapped to producing commands, checking tests, and falsification conditions
+- [LIMITATIONS.md](LIMITATIONS.md): scope limits, verification gaps, and "What would prove us wrong"
+- [REPLICATION.md](REPLICATION.md): one-command bit-identical replication protocol and recorded runs
+- [docs/verification.md](docs/verification.md): 14-layer verification ladder with recorded evidence
+- [formal/lean/README.md](formal/lean/README.md): Lean 4.35.0 spec (31 theorems), `VerifyAxioms.lean`, and executable mirror
+
+## Project docs
+
+- [README.md](README.md): results, quickstart, architecture, real-vs-metaphor table, benchmarks, and control experiment
+- [docs/architecture.md](docs/architecture.md): tick loop, backends, fallbacks, and file map
+- [docs/preregistration.md](docs/preregistration.md): pre-registered selection-vs-drift hypotheses and statistical plan
+- [CHANGELOG.md](CHANGELOG.md): Keep-a-Changelog release history
+- [SECURITY.md](SECURITY.md): security policy and supported versions

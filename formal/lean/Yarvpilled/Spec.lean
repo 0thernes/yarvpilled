@@ -1,3 +1,5 @@
+module
+
 /-!
 # Integer part of the YARVPILLED world step
 
@@ -16,6 +18,8 @@ What is NOT here: positions, headings, trig, collisions (IEEE-754 floats).
 Those are covered by differential tests, not proofs. See docs/verification.md.
 -/
 namespace Yarvpilled
+
+@[expose] public section
 
 def foodMax : Nat := 255
 
@@ -213,5 +217,7 @@ theorem tick1_energy_identity (s : One) (a : Nat) (h : s.alive = true) :
   unfold tick1
   simp only [h, Bool.not_true, Bool.false_eq_true, ↓reduceIte]
   split <;> simp only [energyStep] <;> omega
+
+end
 
 end Yarvpilled

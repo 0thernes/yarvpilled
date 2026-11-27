@@ -3,7 +3,11 @@ message: "If you use this software or its benchmark/control results, please cite
 title: "yarvpilled: an A-Life world where every brain is a live YARV instruction sequence"
 type: software
 authors:
-  - alias: "0thernes"
+  - given-names: "Alexander Stephen"
+    family-names: "Donahue"
+    alias: "0thernes"
+    orcid: "https://orcid.org/0009-0006-8168-9648"
+    affiliation: "Independent Researcher, Spokane, WA, USA"
     email: "0_0@0thernes.art"
 version: "0.4.1"
 date-released: "2026-11-24"

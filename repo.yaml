@@ -1,0 +1,117 @@
+# Project manifest for the Build Standard for LLMs v1.2.0.
+# Keep each item on one line. status: done | todo | partial | n/a (n/a needs a note).
+standard: "1.2.0"
+name: "yarvpilled"
+description: "An A-Life world in CRuby where every creature's brain is a live YARV instruction sequence, with bit-identical Ruby/C/Rust/asm world kernels and a 14-layer verification ladder."
+owner: "0thernes"
+year: "2026"
+project_type: research
+stack: [ruby, c-cpp, rust]
+flags:
+  public: true
+  package: true
+  visual: true
+  ui: true
+  native: true
+  ai: false
+  personal_data: false
+  service: false
+  deployed: true
+  api: false
+  perf: true
+  concurrent: true
+  numeric: true
+  experimental: true
+  ml: false
+  formal: true
+items:
+  A01: {status: done, evidence: "README.md"}
+  A02: {status: done, evidence: "README.md"}
+  A03: {status: done, evidence: "README.md#quickstart"}
+  A04: {status: done, evidence: "README.md#usage"}
+  A05: {status: done, evidence: "docs/yarvpilled.gif"}
+  A06: {status: done, evidence: "LICENSE"}
+  A07: {status: done, evidence: "CHANGELOG.md"}
+  A08: {status: done, evidence: "VERSION"}
+  A09: {status: done, evidence: "test/"}
+  A10: {status: done, evidence: ".github/workflows/ci.yml"}
+  A11: {status: done, evidence: ".github/workflows/release.yml"}
+  A12: {status: done, evidence: ".gitignore"}
+  A13: {status: done, evidence: ".gitattributes"}
+  A14: {status: done, evidence: "CONTRIBUTING.md"}
+  A15: {status: done, evidence: "CODE_OF_CONDUCT.md"}
+  A16: {status: done, evidence: "SECURITY.md"}
+  A17: {status: done, evidence: "SUPPORT.md"}
+  A18: {status: done, evidence: ".github/ISSUE_TEMPLATE/bug_report.yml"}
+  A19: {status: done, note: "GitHub About/topics set on public repo"}
+  A20: {status: done, evidence: "docs/architecture.md"}
+  A21: {status: done, evidence: "docs/adr/0001-genomes-are-real-iseqs.md"}
+  A22: {status: done, evidence: "CITATION.cff"}
+  A23: {status: done, note: "main branch; Alexander Stephen Donahue"}
+  A24: {status: done, note: "No secrets, build outputs, or files over 5 MB committed"}
+  A25: {status: done, evidence: ".github/workflows/ci.yml", note: "Linux, macOS, and Windows jobs"}
+  A26: {status: done, evidence: "docs/social-preview.png"}
+  A27: {status: done, evidence: ".github/workflows/pages.yml"}
+  A28: {status: done, evidence: "yarvpilled.gemspec"}
+  A29: {status: done, evidence: "ROADMAP.md"}
+  A30: {status: done, evidence: "tools/labels.rb"}
+  A31: {status: done, evidence: "justfile"}
+  A32: {status: done, evidence: "AGENTS.md"}
+  A33: {status: done, evidence: "docs/configuration.md"}
+  A34: {status: n/a, note: "Local CLI/demo server, not a production service"}
+  A35: {status: todo}
+  A36: {status: partial, evidence: ".github/workflows/pages.yml", note: "GitHub Pages static replay site deployed by CI"}
+  A37: {status: done, evidence: "docs/bench.md"}
+  A38: {status: partial, evidence: "public/index.html", note: "Interactive canvas replay page; formal WCAG audit not yet run"}
+  A39: {status: done, evidence: "docs/adr/0003-stdlib-only.md", note: "Zero runtime gems and zero Rust crates"}
+  A40: {status: n/a, note: "Zero-model simulation; calls no AI models"}
+  A41: {status: todo}
+  A42: {status: done, evidence: "README.md"}
+  A43: {status: todo}
+  A44: {status: partial, evidence: "docs/faq.md", note: "FAQ present; separate glossary not yet added"}
+  A45: {status: n/a, note: "Collects or processes no personal data"}
+  B01: {status: done, evidence: "justfile"}
+  B02: {status: done, evidence: "ext/yarvpilled_rust/Cargo.lock"}
+  B03: {status: done, evidence: "tools/reproduce.rb"}
+  B04: {status: done, evidence: "CLAIMS.md"}
+  B05: {status: done, evidence: "test/test_claims.rb"}
+  B06: {status: done, evidence: "test/test_negative.rb"}
+  B07: {status: done, evidence: "test/test_project.rb"}
+  B08: {status: done, evidence: "docs/bench.json", note: "Pinned full-sim checksums and world state digests"}
+  B09: {status: n/a, note: "No external API protocol"}
+  B10: {status: done, evidence: "test/test_properties.rb"}
+  B11: {status: done, evidence: "test/test_world_equivalence.rb"}
+  B12: {status: done, evidence: "test/test_differential.rb"}
+  B13: {status: partial, evidence: "tools/mutate.rb", note: "Ruby side mutation-tested (88.5%, 392/443 killed); native kernels covered by fuzzer"}
+  B14: {status: done, evidence: "test/test_properties.rb"}
+  B15: {status: done, evidence: "fuzz/run.sh"}
+  B16: {status: done, evidence: "docs/verification/sanitize.json"}
+  B17: {status: done, evidence: "Rakefile", note: "-Wall -Wextra, clippy, ruby -w"}
+  B18: {status: done, evidence: "ext/yarvpilled_rust/src/lib.rs"}
+  B19: {status: done, evidence: "test/test_simulation.rb", note: "Ractor and Fiber tests included"}
+  B20: {status: done, evidence: "ext/yarvpilled_native/trig_table.h", note: "-ffp-contract=off and bit-exact trig table"}
+  B21: {status: n/a, note: "Not a network service"}
+  B22: {status: done, evidence: "formal/lean/VerifyAxioms.lean", note: "31 Lean 4.35.0 theorems covering integer step, 0 sorry, standard axioms only, checked by leanchecker"}
+  B23: {status: n/a, note: "Single-process simulation"}
+  B24: {status: partial, evidence: "formal/lean/Mirror.lean", note: "Executable Lean mirror differential-tested against all backends (1500 cases)"}
+  B25: {status: partial, evidence: "docs/verification/cbmc.json", note: "5/6 CBMC harnesses verified; whole-tick harness timed out; Kani CI-only"}
+  B26: {status: done, evidence: "docs/bench.md"}
+  B27: {status: done, evidence: "docs/bench_v0.2.0.md"}
+  B28: {status: done, evidence: "docs/control.json", note: "n=20 seeds per arm against drift null model"}
+  B29: {status: done, evidence: "docs/control.md", note: "Two-sided Monte Carlo permutation tests (100,000 relabelings)"}
+  B30: {status: done, evidence: "docs/control.md", note: "Cohen's d and 95% bootstrap CIs"}
+  B31: {status: done, evidence: "docs/control.md", note: "Holm-Bonferroni multiple-comparison correction"}
+  B32: {status: done, evidence: "docs/preregistration.md"}
+  B33: {status: n/a, note: "No ML models"}
+  B34: {status: n/a, note: "No generative AI runtime"}
+  B35: {status: todo}
+  B36: {status: partial, evidence: "SECURITY.md"}
+  B37: {status: done, evidence: ".github/workflows/release.yml"}
+  B38: {status: done, evidence: ".github/workflows/release.yml"}
+  B39: {status: partial, evidence: "docs/bench.json"}
+  B40: {status: done, evidence: "docs/verification/PROGRESS.md"}
+  B41: {status: done, evidence: "LIMITATIONS.md"}
+  B42: {status: done, evidence: "CLAIMS.md"}
+  B43: {status: done, evidence: "REPLICATION.md"}
+  B44: {status: partial, evidence: "REPLICATION.md", note: "3 author-machine replications recorded; external replications pending"}
+  B45: {status: partial, evidence: "docs/verification/PROGRESS.md"}

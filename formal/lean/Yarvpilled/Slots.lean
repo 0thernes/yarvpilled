@@ -1,3 +1,5 @@
+module
+
 /-!
 # Slot allocation and the population bound
 
@@ -5,6 +7,8 @@
 fails (`nil` in Ruby). Mirrors `world_spawn` in world.c and `WorldRuby#spawn`.
 -/
 namespace Yarvpilled
+
+@[expose] public section
 
 def fillFirst : List Bool → Option (List Bool)
   | [] => none
@@ -74,5 +78,7 @@ theorem population_le_cap (s s' : List Bool) (cap : Nat) (hs : s.length ≤ cap)
 theorem spawn_full (s : List Bool) (cap : Nat) (hfull : fillFirst s = none) (hc : cap ≤ s.length) :
     spawn s cap = none := by
   unfold spawn; rw [hfull]; simp; omega
+
+end
 
 end Yarvpilled

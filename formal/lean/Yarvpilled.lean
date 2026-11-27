@@ -1,2 +1,4 @@
-import Yarvpilled.Spec
-import Yarvpilled.Slots
+module
+
+public import Yarvpilled.Spec
+public import Yarvpilled.Slots
